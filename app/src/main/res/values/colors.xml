@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="osoterra_green">@color/md_green</color>
+    <color name="md_green">#2E6E4E</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="ic_launcher_background">#F2EFE6</color>
+</resources>
