@@ -14,6 +14,8 @@ object Routes {
     const val CREATE_PLOT = "create_plot"
     const val CROP_CATALOG = "crop_catalog"
     const val DEVICES = "devices"
+    const val NOTIFICATION_SETTINGS = "notification_settings"
+    const val SUBSCRIPTION = "subscription"
 
     const val PLOT_DETAIL = "plot/{plotId}"
     fun plotDetail(plotId: String) = "plot/$plotId"
