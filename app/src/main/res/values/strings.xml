@@ -1,0 +1,112 @@
+<resources>
+    <string name="app_name">OsoTerra</string>
+
+    <!-- Login -->
+    <string name="login_title">OsoTerra</string>
+    <string name="login_subtitle">Monitorea la salud de tu suelo</string>
+    <string name="login_email">Correo electrónico</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_forgot">¿Olvidaste tu contraseña?</string>
+    <string name="login_register">Crear una cuenta</string>
+    <string name="login_error_empty">Ingresa tu correo y contraseña</string>
+    <string name="login_error_credentials">Correo o contraseña incorrectos</string>
+
+    <!-- Navegación -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_alerts">Alertas</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Mis parcelas</string>
+    <string name="dashboard_empty">Aún no tienes parcelas registradas</string>
+    <string name="dashboard_last_reading">Última medición: %1$s</string>
+
+    <!-- Estados de salinidad -->
+    <string name="salinity_normal">Normal</string>
+    <string name="salinity_watch">En observación</string>
+    <string name="salinity_warning">Advertencia</string>
+    <string name="salinity_critical">Crítico</string>
+    <string name="salinity_no_data">Sin datos</string>
+
+    <!-- Alertas -->
+    <string name="alerts_title">Centro de notificaciones</string>
+    <string name="alerts_empty">No tienes alertas pendientes</string>
+    <string name="alerts_acknowledge">Marcar como atendida</string>
+
+    <!-- Perfil -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_logout">Cerrar sesión</string>
+    <string name="profile_farms">Mis fincas</string>
+    <string name="profile_crops">Catálogo de cultivos</string>
+    <string name="profile_role_producer">Productor</string>
+    <string name="profile_role_advisor">Asesor técnico</string>
+
+    <!-- Registro -->
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_role">Tipo de cuenta</string>
+    <string name="register_role_producer">Productor</string>
+    <string name="register_role_advisor">Asesor técnico</string>
+    <string name="register_name">Nombre completo</string>
+    <string name="register_license">Número de colegiatura</string>
+    <string name="register_button">Registrarme</string>
+    <string name="register_success">Cuenta creada correctamente</string>
+
+    <!-- Recuperar contraseña -->
+    <string name="forgot_title">Recuperar contraseña</string>
+    <string name="forgot_instructions">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</string>
+    <string name="forgot_button">Enviar enlace</string>
+    <string name="forgot_sent">Si el correo está registrado, recibirás un enlace de restablecimiento.</string>
+
+    <!-- Fincas -->
+    <string name="farms_title">Mis fincas</string>
+    <string name="farms_empty">Aún no tienes fincas registradas</string>
+    <string name="farms_new">Nueva finca</string>
+    <string name="farm_name">Nombre de la finca</string>
+    <string name="farm_department">Departamento</string>
+    <string name="farm_province">Provincia</string>
+    <string name="farm_district">Distrito</string>
+    <string name="farm_save">Guardar finca</string>
+
+    <!-- Parcelas -->
+    <string name="plot_new">Nueva parcela</string>
+    <string name="plot_name">Nombre de la parcela</string>
+    <string name="plot_farm">Finca</string>
+    <string name="plot_area">Superficie (hectáreas)</string>
+    <string name="plot_latitude">Latitud (opcional)</string>
+    <string name="plot_longitude">Longitud (opcional)</string>
+    <string name="plot_crop">Cultivo (opcional)</string>
+    <string name="plot_crop_none">Sin cultivo</string>
+    <string name="plot_save">Guardar parcela</string>
+    <string name="plot_area_error">La superficie debe ser mayor a cero</string>
+    <string name="plot_need_farm">Primero registra una finca</string>
+    <string name="plot_deactivate">Dar de baja la parcela</string>
+    <string name="plot_deactivate_confirm">¿Dar de baja esta parcela? Se liberará el cupo de tu plan.</string>
+    <string name="plot_change_crop">Cambiar cultivo</string>
+
+    <!-- Catálogo de cultivos -->
+    <string name="crops_title">Catálogo de cultivos</string>
+    <string name="crops_threshold">Umbral: %1$s dS/m</string>
+
+    <!-- Comunes -->
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="common_retry">Reintentar</string>
+
+    <!-- Dispositivos -->
+    <string name="profile_devices">Mis dispositivos</string>
+    <string name="devices_title">Mis dispositivos</string>
+    <string name="devices_empty">Aún no tienes dispositivos registrados</string>
+    <string name="device_register">Registrar dispositivo</string>
+    <string name="device_code">Código de activación</string>
+    <string name="device_plot">Parcela</string>
+    <string name="device_unlinked">Sin parcela vinculada</string>
+    <string name="device_online">En línea</string>
+    <string name="device_low_battery">Batería baja</string>
+    <string name="device_offline">Fuera de línea</string>
+    <string name="device_last_seen">Último reporte: %1$s</string>
+    <string name="device_calibrate">Calibrar</string>
+    <string name="device_reference_value">Valor de laboratorio (dS/m)</string>
+    <string name="device_sample_date">Fecha del muestreo (AAAA-MM-DD)</string>
+    <string name="device_last_calibration">Última calibración: %1$s · factor %2$s</string>
+</resources>
