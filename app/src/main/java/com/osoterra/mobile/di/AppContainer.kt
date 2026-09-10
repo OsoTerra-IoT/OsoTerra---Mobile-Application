@@ -4,12 +4,14 @@ import android.content.Context
 import com.osoterra.mobile.core.network.ApiClient
 import com.osoterra.mobile.data.repository.AlertRepositoryMock
 import com.osoterra.mobile.data.repository.AuthRepositoryMock
+import com.osoterra.mobile.data.repository.DeviceRepositoryMock
 import com.osoterra.mobile.data.repository.FarmRepositoryMock
 import com.osoterra.mobile.data.repository.PlotRepositoryMock
 import com.osoterra.mobile.data.repository.SessionStore
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.repository.AlertRepository
 import com.osoterra.mobile.domain.repository.AuthRepository
+import com.osoterra.mobile.domain.repository.DeviceRepository
 import com.osoterra.mobile.domain.repository.FarmRepository
 import com.osoterra.mobile.domain.repository.PlotRepository
 
@@ -29,6 +31,7 @@ class AppContainer(context: Context) {
     val farmRepository: FarmRepository = farmRepositoryImpl
     val plotRepository: PlotRepository = PlotRepositoryMock(farmRepositoryImpl)
     val alertRepository: AlertRepository = AlertRepositoryMock()
+    val deviceRepository: DeviceRepository = DeviceRepositoryMock(plotRepository)
 
     suspend fun bootstrapSession(): User? {
         sessionToken = sessionStore.readToken()

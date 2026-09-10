@@ -29,6 +29,7 @@ import com.osoterra.mobile.ui.auth.login.LoginScreen
 import com.osoterra.mobile.ui.auth.register.RegisterScreen
 import com.osoterra.mobile.ui.crops.CropCatalogScreen
 import com.osoterra.mobile.ui.dashboard.DashboardScreen
+import com.osoterra.mobile.ui.devices.DevicesScreen
 import com.osoterra.mobile.ui.farms.FarmsScreen
 import com.osoterra.mobile.ui.plot.CreatePlotScreen
 import com.osoterra.mobile.ui.plot.PlotDetailScreen
@@ -134,10 +135,14 @@ fun OsoTerraRoot() {
                     },
                     onOpenFarms = { navController.navigate(Routes.FARMS) },
                     onOpenCrops = { navController.navigate(Routes.CROP_CATALOG) },
+                    onOpenDevices = { navController.navigate(Routes.DEVICES) },
                 )
             }
             composable(Routes.FARMS) {
                 FarmsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.DEVICES) {
+                DevicesScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.CREATE_PLOT) {
                 CreatePlotScreen(

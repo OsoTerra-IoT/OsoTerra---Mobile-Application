@@ -92,4 +92,21 @@
     <string name="common_cancel">Cancelar</string>
     <string name="common_confirm">Confirmar</string>
     <string name="common_retry">Reintentar</string>
+
+    <!-- Dispositivos -->
+    <string name="profile_devices">Mis dispositivos</string>
+    <string name="devices_title">Mis dispositivos</string>
+    <string name="devices_empty">Aún no tienes dispositivos registrados</string>
+    <string name="device_register">Registrar dispositivo</string>
+    <string name="device_code">Código de activación</string>
+    <string name="device_plot">Parcela</string>
+    <string name="device_unlinked">Sin parcela vinculada</string>
+    <string name="device_online">En línea</string>
+    <string name="device_low_battery">Batería baja</string>
+    <string name="device_offline">Fuera de línea</string>
+    <string name="device_last_seen">Último reporte: %1$s</string>
+    <string name="device_calibrate">Calibrar</string>
+    <string name="device_reference_value">Valor de laboratorio (dS/m)</string>
+    <string name="device_sample_date">Fecha del muestreo (AAAA-MM-DD)</string>
+    <string name="device_last_calibration">Última calibración: %1$s · factor %2$s</string>
 </resources>

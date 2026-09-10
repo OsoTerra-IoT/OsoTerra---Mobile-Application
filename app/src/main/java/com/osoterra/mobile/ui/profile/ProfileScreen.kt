@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Agriculture
 import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -42,6 +43,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onOpenFarms: () -> Unit,
     onOpenCrops: () -> Unit,
+    onOpenDevices: () -> Unit,
 ) {
     val container = rememberAppContainer()
     val scope = rememberCoroutineScope()
@@ -103,6 +105,12 @@ fun ProfileScreen(
                 headlineContent = { Text(stringResource(R.string.profile_crops)) },
                 leadingContent = { Icon(Icons.Filled.Grass, contentDescription = null) },
                 modifier = Modifier.clickable(onClick = onOpenCrops),
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.profile_devices)) },
+                leadingContent = { Icon(Icons.Filled.Sensors, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenDevices),
             )
 
             Spacer(Modifier.weight(1f))

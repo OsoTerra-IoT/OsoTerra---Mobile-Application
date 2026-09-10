@@ -13,6 +13,7 @@ object Routes {
     const val FARMS = "farms"
     const val CREATE_PLOT = "create_plot"
     const val CROP_CATALOG = "crop_catalog"
+    const val DEVICES = "devices"
 
     const val PLOT_DETAIL = "plot/{plotId}"
     fun plotDetail(plotId: String) = "plot/$plotId"
