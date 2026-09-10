@@ -2,6 +2,7 @@ package com.osoterra.mobile.di
 
 import android.content.Context
 import com.osoterra.mobile.core.network.ApiClient
+import com.osoterra.mobile.data.repository.AdvisorRepositoryMock
 import com.osoterra.mobile.data.repository.AlertRepositoryMock
 import com.osoterra.mobile.data.repository.AuthRepositoryMock
 import com.osoterra.mobile.data.repository.DeviceRepositoryMock
@@ -11,6 +12,7 @@ import com.osoterra.mobile.data.repository.PlotRepositoryMock
 import com.osoterra.mobile.data.repository.SessionStore
 import com.osoterra.mobile.data.repository.SubscriptionRepositoryMock
 import com.osoterra.mobile.domain.model.User
+import com.osoterra.mobile.domain.repository.AdvisorRepository
 import com.osoterra.mobile.domain.repository.AlertRepository
 import com.osoterra.mobile.domain.repository.AuthRepository
 import com.osoterra.mobile.domain.repository.DeviceRepository
@@ -39,6 +41,7 @@ class AppContainer(context: Context) {
     val notificationPreferencesRepository: NotificationPreferencesRepository =
         NotificationPreferencesStore(context.applicationContext)
     val subscriptionRepository: SubscriptionRepository = SubscriptionRepositoryMock()
+    val advisorRepository: AdvisorRepository = AdvisorRepositoryMock()
 
     suspend fun bootstrapSession(): User? {
         sessionToken = sessionStore.readToken()

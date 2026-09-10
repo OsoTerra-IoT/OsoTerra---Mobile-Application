@@ -17,6 +17,11 @@ object Routes {
     const val NOTIFICATION_SETTINGS = "notification_settings"
     const val SUBSCRIPTION = "subscription"
 
+    const val ADVISOR_DASHBOARD = "advisor"
+    const val ADVISOR_COMPARE = "advisor/compare/{plotIds}"
+    fun advisorCompare(plotIds: List<String>) = "advisor/compare/${plotIds.joinToString(",")}"
+    const val ARG_PLOT_IDS = "plotIds"
+
     const val PLOT_DETAIL = "plot/{plotId}"
     fun plotDetail(plotId: String) = "plot/$plotId"
     const val ARG_PLOT_ID = "plotId"

@@ -23,6 +23,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.advisor.AdvisorCompareScreen
+import com.osoterra.mobile.ui.advisor.AdvisorDashboardScreen
 import com.osoterra.mobile.ui.alerts.AlertsScreen
 import com.osoterra.mobile.ui.auth.forgot.ForgotPasswordScreen
 import com.osoterra.mobile.ui.auth.login.LoginScreen
@@ -140,6 +142,7 @@ fun OsoTerraRoot() {
                     onOpenDevices = { navController.navigate(Routes.DEVICES) },
                     onOpenNotifications = { navController.navigate(Routes.NOTIFICATION_SETTINGS) },
                     onOpenSubscription = { navController.navigate(Routes.SUBSCRIPTION) },
+                    onOpenAdvisor = { navController.navigate(Routes.ADVISOR_DASHBOARD) },
                 )
             }
             composable(Routes.FARMS) {
@@ -153,6 +156,23 @@ fun OsoTerraRoot() {
             }
             composable(Routes.SUBSCRIPTION) {
                 SubscriptionScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.ADVISOR_DASHBOARD) {
+                AdvisorDashboardScreen(
+                    onBack = { navController.popBackStack() },
+                    onCompare = { ids -> navController.navigate(Routes.advisorCompare(ids)) },
+                )
+            }
+            composable(
+                route = Routes.ADVISOR_COMPARE,
+                arguments = listOf(navArgument(Routes.ARG_PLOT_IDS) { type = NavType.StringType }),
+            ) { entry ->
+                val ids = entry.arguments?.getString(Routes.ARG_PLOT_IDS)
+                    ?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+                AdvisorCompareScreen(
+                    plotIds = ids,
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(Routes.CREATE_PLOT) {
                 CreatePlotScreen(

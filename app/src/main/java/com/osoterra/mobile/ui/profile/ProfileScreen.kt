@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Agriculture
 import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -48,6 +49,7 @@ fun ProfileScreen(
     onOpenDevices: () -> Unit,
     onOpenNotifications: () -> Unit,
     onOpenSubscription: () -> Unit,
+    onOpenAdvisor: () -> Unit,
 ) {
     val container = rememberAppContainer()
     val scope = rememberCoroutineScope()
@@ -127,6 +129,12 @@ fun ProfileScreen(
                 headlineContent = { Text(stringResource(R.string.profile_notifications)) },
                 leadingContent = { Icon(Icons.Filled.Notifications, contentDescription = null) },
                 modifier = Modifier.clickable(onClick = onOpenNotifications),
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.profile_advisor)) },
+                leadingContent = { Icon(Icons.Filled.Groups, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenAdvisor),
             )
 
             Spacer(Modifier.weight(1f))
