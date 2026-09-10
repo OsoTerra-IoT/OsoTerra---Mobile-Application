@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.HorizontalDivider
@@ -44,6 +46,8 @@ fun ProfileScreen(
     onOpenFarms: () -> Unit,
     onOpenCrops: () -> Unit,
     onOpenDevices: () -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenSubscription: () -> Unit,
 ) {
     val container = rememberAppContainer()
     val scope = rememberCoroutineScope()
@@ -111,6 +115,18 @@ fun ProfileScreen(
                 headlineContent = { Text(stringResource(R.string.profile_devices)) },
                 leadingContent = { Icon(Icons.Filled.Sensors, contentDescription = null) },
                 modifier = Modifier.clickable(onClick = onOpenDevices),
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.profile_subscription)) },
+                leadingContent = { Icon(Icons.Filled.CardMembership, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenSubscription),
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.profile_notifications)) },
+                leadingContent = { Icon(Icons.Filled.Notifications, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenNotifications),
             )
 
             Spacer(Modifier.weight(1f))

@@ -109,4 +109,27 @@
     <string name="device_reference_value">Valor de laboratorio (dS/m)</string>
     <string name="device_sample_date">Fecha del muestreo (AAAA-MM-DD)</string>
     <string name="device_last_calibration">Última calibración: %1$s · factor %2$s</string>
+
+    <!-- Severidad de alertas -->
+    <string name="severity_low">Baja</string>
+    <string name="severity_medium">Media</string>
+    <string name="severity_high">Alta</string>
+    <string name="severity_critical">Crítica</string>
+
+    <!-- Preferencias de notificación -->
+    <string name="profile_notifications">Preferencias de notificación</string>
+    <string name="notif_settings_title">Notificaciones</string>
+    <string name="notif_min_severity">Nivel mínimo de severidad</string>
+    <string name="notif_min_severity_hint">Recibirás avisos de este nivel en adelante.</string>
+    <string name="notif_channels">Canales de entrega</string>
+    <string name="notif_channel_push">Notificación push</string>
+    <string name="notif_channel_email">Correo electrónico</string>
+
+    <!-- Suscripción -->
+    <string name="profile_subscription">Mi suscripción</string>
+    <string name="subscription_title">Mi suscripción</string>
+    <string name="subscription_free">Plan sin vencimiento</string>
+    <string name="subscription_renews">Se renueva el %1$s</string>
+    <string name="subscription_plots_used">%1$d de %2$d parcelas usadas</string>
+    <string name="subscription_limit_reached">Alcanzaste el límite de parcelas de tu plan.</string>
 </resources>

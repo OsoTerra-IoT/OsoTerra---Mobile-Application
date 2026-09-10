@@ -34,7 +34,9 @@ import com.osoterra.mobile.ui.farms.FarmsScreen
 import com.osoterra.mobile.ui.plot.CreatePlotScreen
 import com.osoterra.mobile.ui.plot.PlotDetailScreen
 import com.osoterra.mobile.ui.profile.ProfileScreen
+import com.osoterra.mobile.ui.settings.NotificationSettingsScreen
 import com.osoterra.mobile.ui.startup.StartupScreen
+import com.osoterra.mobile.ui.subscription.SubscriptionScreen
 
 private data class BottomDestination(
     val route: String,
@@ -136,6 +138,8 @@ fun OsoTerraRoot() {
                     onOpenFarms = { navController.navigate(Routes.FARMS) },
                     onOpenCrops = { navController.navigate(Routes.CROP_CATALOG) },
                     onOpenDevices = { navController.navigate(Routes.DEVICES) },
+                    onOpenNotifications = { navController.navigate(Routes.NOTIFICATION_SETTINGS) },
+                    onOpenSubscription = { navController.navigate(Routes.SUBSCRIPTION) },
                 )
             }
             composable(Routes.FARMS) {
@@ -143,6 +147,12 @@ fun OsoTerraRoot() {
             }
             composable(Routes.DEVICES) {
                 DevicesScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.NOTIFICATION_SETTINGS) {
+                NotificationSettingsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.SUBSCRIPTION) {
+                SubscriptionScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.CREATE_PLOT) {
                 CreatePlotScreen(
