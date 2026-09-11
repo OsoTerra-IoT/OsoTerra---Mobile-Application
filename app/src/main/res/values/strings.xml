@@ -132,4 +132,15 @@
     <string name="subscription_renews">Se renueva el %1$s</string>
     <string name="subscription_plots_used">%1$d de %2$d parcelas usadas</string>
     <string name="subscription_limit_reached">Alcanzaste el límite de parcelas de tu plan.</string>
+
+    <!-- Panel de asesor (multiparcela) -->
+    <string name="profile_advisor">Panel de asesor</string>
+    <string name="advisor_title">Parcelas supervisadas</string>
+    <string name="advisor_sort">Ordenar por criticidad</string>
+    <string name="advisor_filter_producer">Productor</string>
+    <string name="advisor_filter_crop">Cultivo</string>
+    <string name="advisor_filter_all">Todos</string>
+    <string name="advisor_compare_n">Comparar (%1$d)</string>
+    <string name="advisor_compare_title">Comparación de parcelas</string>
+    <string name="advisor_compare_subtitle">Conductividad eléctrica (dS/m) por parcela en el periodo.</string>
 </resources>
