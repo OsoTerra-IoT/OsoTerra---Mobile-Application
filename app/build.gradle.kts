@@ -16,6 +16,11 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // true: repositorios mock (demo sin Backend). false: RESTful API real.
+        // Cambiar sin tocar código: ./gradlew assembleDebug -Posoterra.fakeApi=false
+        val useFakeApi = (project.findProperty("osoterra.fakeApi") as String?) ?: "true"
+        buildConfigField("boolean", "USE_FAKE_API", useFakeApi)
     }
 
     buildTypes {
@@ -23,6 +28,8 @@ android {
             // Base URL del RESTful API (Spring Boot). Ajustar cuando el backend esté disponible.
             // 10.0.2.2 apunta al localhost de la máquina host desde el emulador Android.
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            // El Backend local corre en HTTP; solo el build de desarrollo lo permite.
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
         }
         release {
             isMinifyEnabled = false
@@ -31,6 +38,7 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "API_BASE_URL", "\"https://api.osoterra.com/api/v1/\"")
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
         }
     }
     compileOptions {
