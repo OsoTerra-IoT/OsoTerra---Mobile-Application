@@ -1,6 +1,9 @@
 package com.osoterra.mobile.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -66,7 +69,11 @@ fun OsoTerraRoot() {
         }
     }
 
+    // El login dibuja su propio panel detrás de la barra de estado.
+    val fullBleed = currentRoute == Routes.LOGIN
+
     Scaffold(
+        contentWindowInsets = if (fullBleed) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -93,7 +100,10 @@ fun OsoTerraRoot() {
         NavHost(
             navController = navController,
             startDestination = Routes.STARTUP,
-            modifier = Modifier.padding(innerPadding),
+            // Consumir los insets evita que los Scaffold de cada pantalla los apliquen otra vez.
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
         ) {
             composable(Routes.STARTUP) {
                 StartupScreen(
