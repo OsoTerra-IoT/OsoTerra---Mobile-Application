@@ -1,6 +1,7 @@
 package com.osoterra.mobile.data.repository
 
 import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.data.remote.salinityLevel
 import com.osoterra.mobile.domain.model.Alert
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Farm
@@ -104,7 +105,10 @@ class PlotRepositoryMock(
     private val farmRepository: FarmRepositoryMock,
 ) : PlotRepository {
 
-    private val plots = MockData.plots.toMutableList()
+    // El nivel se calcula con la misma regla que el Backend, no se fija a mano.
+    private val plots = MockData.plots
+        .map { it.copy(salinityLevel = salinityLevel(it.lastEcDsPerM, it.crop?.thresholdDsPerM)) }
+        .toMutableList()
 
     override suspend fun getPlots(): DataResult<List<Plot>> {
         delay(500.milliseconds)
