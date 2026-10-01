@@ -1,72 +1,75 @@
 package com.osoterra.mobile.ui.theme
 
 import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-private val DarkBackground = Color(0xFF121412)
-private val DarkSurface = Color(0xFF1E201D)
-
 private val LightColors = lightColorScheme(
-    primary = OsoGreen,
-    onPrimary = NeutralWhite,
-    primaryContainer = OsoGreenLight,
-    onPrimaryContainer = OsoGreenDark,
-    secondary = OsoEarth,
-    onSecondary = NeutralWhite,
-    secondaryContainer = OsoEarthLight,
-    background = OsoSand,
-    onBackground = NeutralBlack,
-    surface = NeutralWhite,
-    onSurface = NeutralBlack,
-    surfaceVariant = OsoEarthLight,
-    onSurfaceVariant = NeutralGray,
+    primary = Emerald700,
+    onPrimary = White,
+    primaryContainer = Emerald100,
+    onPrimaryContainer = Emerald900,
+    secondary = Emerald600,
+    onSecondary = White,
+    secondaryContainer = SurfaceGreen,
+    onSecondaryContainer = Emerald900,
+    tertiary = Emerald800,
+    onTertiary = White,
+    background = Salt,
+    onBackground = Ink,
+    surface = White,
+    onSurface = Ink,
+    surfaceVariant = Track,
+    onSurfaceVariant = Neutral600,
+    surfaceContainerLowest = White,
+    surfaceContainerLow = White,
+    surfaceContainer = White,
+    surfaceContainerHigh = Salt,
+    surfaceContainerHighest = Track,
+    outline = Neutral600,
+    outlineVariant = Line,
     error = SalinityCritical,
-    onError = NeutralWhite,
+    onError = White,
+    errorContainer = SalinityCriticalContainer,
+    onErrorContainer = SalinityCritical,
 )
 
-private val DarkColors = darkColorScheme(
-    primary = OsoGreenLight,
-    onPrimary = OsoGreenDark,
-    primaryContainer = OsoGreenDark,
-    onPrimaryContainer = OsoGreenLight,
-    secondary = OsoEarthLight,
-    onSecondary = OsoEarth,
-    background = DarkBackground,
-    onBackground = NeutralWhite,
-    surface = DarkSurface,
-    onSurface = NeutralWhite,
-    error = SalinityCritical,
-    onError = NeutralWhite,
+/** Radios de la guía: 8 dp controles, 12–20 dp tarjetas, píldoras completas. */
+private val OsoShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
+/**
+ * Tema claro único, como la Web App: el fondo «sal» y los verdes de la marca en toda la app.
+ */
 @Composable
-fun OsoTerraTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
-
+fun OsoTerraTheme(content: @Composable () -> Unit) {
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-
-            WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightStatusBars = !darkTheme
+            @Suppress("DEPRECATION")
+            window.statusBarColor = Salt.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = LightColors,
         typography = OsoTypography,
+        shapes = OsoShapes,
         content = content,
     )
 }
