@@ -143,4 +143,37 @@
     <string name="advisor_compare_n">Comparar (%1$d)</string>
     <string name="advisor_compare_title">Comparación de parcelas</string>
     <string name="advisor_compare_subtitle">Conductividad eléctrica (dS/m) por parcela en el periodo.</string>
+
+    <!-- Inicio (rediseño) -->
+    <string name="startup_tagline">Conoce la salinidad de tu suelo</string>
+    <string name="startup_loading">Cargando</string>
+    <string name="login_headline">Conoce tu suelo.
+Protege tu cosecha.</string>
+    <string name="login_hint">Entra a tu espacio de monitoreo de suelos.</string>
+    <string name="login_show_password">Mostrar contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_probe_reading">1.2 dS/m</string>
+    <string name="login_demo_note">Modo demostración: entra con cualquier correo y contraseña. Los datos son de ejemplo.</string>
+    <string name="dashboard_hello">Hola, %1$s</string>
+    <string name="dashboard_hello_anonymous">Hola</string>
+    <string name="dashboard_refresh">Actualizar</string>
+    <plurals name="dashboard_attention">
+        <item quantity="one">%1$d de tus %2$d parcelas necesita atención.</item>
+        <item quantity="other">%1$d de tus %2$d parcelas necesitan atención.</item>
+    </plurals>
+    <plurals name="dashboard_all_clear">
+        <item quantity="one">Tu parcela está bajo el umbral del cultivo.</item>
+        <item quantity="other">Tus %1$d parcelas están bajo el umbral del cultivo.</item>
+    </plurals>
+    <string name="dashboard_stat_plots">Parcelas</string>
+    <string name="dashboard_stat_alerts">Alertas activas</string>
+    <string name="dashboard_stat_devices">Sensores en línea</string>
+    <string name="dashboard_section">Salinidad por parcela</string>
+    <string name="dashboard_ratio">%1$d %% del umbral (%2$s dS/m)</string>
+    <string name="dashboard_legend">La línea vertical de cada franja marca el umbral de salinidad del cultivo.</string>
+    <string name="dashboard_device_offline">Sensor sin conexión</string>
+    <string name="dashboard_no_readings">Aún sin mediciones</string>
+    <string name="dashboard_empty_hint">Registra una parcela y vincula su sensor para ver la salinidad aquí.</string>
+    <string name="dashboard_retry">Reintentar</string>
+    <string name="salinity_strip_description">Conductividad al %1$d %% del umbral del cultivo</string>
 </resources>
