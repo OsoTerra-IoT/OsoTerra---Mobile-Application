@@ -52,7 +52,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Plot
+import com.osoterra.mobile.ui.common.EmptyCard
+import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.ui.common.SalinityChip
+import com.osoterra.mobile.ui.common.SkeletonCard
 import com.osoterra.mobile.ui.common.SalinityStrip
 import com.osoterra.mobile.ui.common.color
 import com.osoterra.mobile.ui.common.rememberReducedMotion
@@ -99,11 +102,16 @@ fun DashboardScreen(
             ) {
                 item(key = "header") { Header(state, onRefresh = viewModel::refresh) }
                 when {
-                    state.isLoading -> items(3) { PlotSkeleton() }
+                    state.isLoading -> items(3) { SkeletonCard() }
                     state.errorMessage != null && state.plots.isEmpty() -> item(key = "error") {
-                        ErrorState(state.errorMessage!!, onRetry = viewModel::loadPlots)
+                        ErrorCard(state.errorMessage!!, onRetry = viewModel::loadPlots)
                     }
-                    state.plots.isEmpty() -> item(key = "empty") { EmptyState() }
+                    state.plots.isEmpty() -> item(key = "empty") {
+                        EmptyCard(
+                            title = stringResource(R.string.dashboard_empty),
+                            hint = stringResource(R.string.dashboard_empty_hint),
+                        )
+                    }
                     else -> {
                         item(key = "stats") { Stats(state) }
                         item(key = "section") {
@@ -306,47 +314,4 @@ private fun StaggeredEntrance(index: Int, content: @Composable () -> Unit) {
             translationY = (1f - progress.value) * 24.dp.toPx()
         },
     ) { content() }
-}
-
-@Composable
-private fun PlotSkeleton() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.fillMaxWidth(0.5f).height(20.dp).background(Track, RoundedCornerShape(8.dp)))
-            Box(Modifier.fillMaxWidth(0.7f).height(14.dp).background(Track, RoundedCornerShape(8.dp)))
-            Box(Modifier.fillMaxWidth().height(12.dp).background(Track, RoundedCornerShape(8.dp)))
-        }
-    }
-}
-
-@Composable
-private fun EmptyState() {
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(24.dp)) {
-            Text(stringResource(R.string.dashboard_empty), style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                stringResource(R.string.dashboard_empty_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.errorContainer) {
-        Column(Modifier.fillMaxWidth().padding(24.dp)) {
-            Text(message, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onErrorContainer)
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = onRetry, shape = RoundedCornerShape(14.dp)) { Text(stringResource(R.string.dashboard_retry)) }
-        }
-    }
 }

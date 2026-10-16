@@ -2,6 +2,7 @@ package com.osoterra.mobile.domain.repository
 
 import com.osoterra.mobile.core.util.DataResult
 import com.osoterra.mobile.domain.model.Alert
+import com.osoterra.mobile.domain.model.CorrectiveActionType
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Farm
 import com.osoterra.mobile.domain.model.NewPlot
@@ -43,4 +44,9 @@ interface FarmRepository {
 interface AlertRepository {
     suspend fun getAlerts(): DataResult<List<Alert>>
     suspend fun acknowledge(alertId: String): DataResult<Unit>
+    suspend fun recordCorrectiveAction(
+        alertId: String,
+        type: CorrectiveActionType,
+        notes: String,
+    ): DataResult<Unit>
 }

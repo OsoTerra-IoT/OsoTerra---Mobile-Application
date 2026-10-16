@@ -3,10 +3,13 @@ package com.osoterra.mobile.data.remote
 import com.osoterra.mobile.core.util.DataResult
 import com.osoterra.mobile.data.remote.dto.ApiErrorDto
 import com.osoterra.mobile.data.remote.dto.CropDto
+import com.osoterra.mobile.data.remote.dto.NotificationPreferenceDto
+import com.osoterra.mobile.data.remote.dto.SetNotificationPreferenceDto
 import com.osoterra.mobile.data.remote.dto.SoilReadingDto
 import com.osoterra.mobile.data.remote.dto.UserAccountDto
 import com.osoterra.mobile.domain.model.AlertSeverity
 import com.osoterra.mobile.domain.model.Crop
+import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.Reading
 import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.domain.model.User
@@ -67,6 +70,27 @@ fun alertSeverity(apiSeverity: String): AlertSeverity = when (apiSeverity) {
     "WARNING" -> AlertSeverity.HIGH
     else -> AlertSeverity.MEDIUM
 }
+
+/** Preferencias del Backend (severidad mínima y canal) en la escala de la app. */
+fun NotificationPreferenceDto.toPreferences(): NotificationPreferences = NotificationPreferences(
+    minSeverity = alertSeverity(minimumSeverity),
+    pushEnabled = channel == "PUSH" || channel == "BOTH",
+    emailEnabled = channel == "EMAIL" || channel == "BOTH",
+)
+
+/** El Backend exige un canal; sin push queda el correo. */
+fun NotificationPreferences.toSetDto(): SetNotificationPreferenceDto = SetNotificationPreferenceDto(
+    minimumSeverity = when (minSeverity) {
+        AlertSeverity.CRITICAL -> "CRITICAL"
+        AlertSeverity.HIGH -> "WARNING"
+        else -> "WATCH"
+    },
+    channel = when {
+        pushEnabled && emailEnabled -> "BOTH"
+        pushEnabled -> "PUSH"
+        else -> "EMAIL"
+    },
+)
 
 fun UserAccountDto.toUser(): User = User(
     id = id.toString(),

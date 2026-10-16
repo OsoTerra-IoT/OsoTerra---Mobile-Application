@@ -8,6 +8,7 @@ import com.osoterra.mobile.data.remote.AlertRepositoryRemote
 import com.osoterra.mobile.data.remote.AuthRepositoryRemote
 import com.osoterra.mobile.data.remote.DeviceRepositoryRemote
 import com.osoterra.mobile.data.remote.FarmRepositoryRemote
+import com.osoterra.mobile.data.remote.NotificationPreferencesRemote
 import com.osoterra.mobile.data.remote.PlotRepositoryRemote
 import com.osoterra.mobile.data.remote.RemoteMonitoringReader
 import com.osoterra.mobile.data.remote.SubscriptionRepositoryRemote
@@ -29,6 +30,13 @@ import com.osoterra.mobile.domain.repository.FarmRepository
 import com.osoterra.mobile.domain.repository.NotificationPreferencesRepository
 import com.osoterra.mobile.domain.repository.PlotRepository
 import com.osoterra.mobile.domain.repository.SubscriptionRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Service locator de la app. Con `BuildConfig.USE_FAKE_API` usa los repositorios mock;
@@ -42,7 +50,26 @@ class AppContainer(context: Context) {
 
     private val sessionStore = SessionStore(context.applicationContext)
 
-    val apiClient: ApiClient by lazy { ApiClient(tokenProvider = { sessionToken }) }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val expired = MutableStateFlow(false)
+
+    /** true cuando el Backend rechazó el token guardado; la navegación vuelve al login. */
+    val sessionExpired: StateFlow<Boolean> = expired.asStateFlow()
+
+    val apiClient: ApiClient by lazy {
+        ApiClient(tokenProvider = { sessionToken }, onUnauthorized = ::expireSession)
+    }
+
+    private fun expireSession() {
+        sessionToken = null
+        expired.value = true
+        scope.launch { sessionStore.clear() }
+    }
+
+    fun acknowledgeExpiredSession() {
+        expired.value = false
+    }
 
     val usesFakeApi: Boolean = BuildConfig.USE_FAKE_API
 
@@ -55,8 +82,7 @@ class AppContainer(context: Context) {
     val deviceRepository: DeviceRepository
     val subscriptionRepository: SubscriptionRepository
     val advisorRepository: AdvisorRepository
-    val notificationPreferencesRepository: NotificationPreferencesRepository =
-        NotificationPreferencesStore(context.applicationContext)
+    val notificationPreferencesRepository: NotificationPreferencesRepository
 
     init {
         if (usesFakeApi) {
@@ -69,6 +95,7 @@ class AppContainer(context: Context) {
             deviceRepository = DeviceRepositoryMock(plots)
             subscriptionRepository = SubscriptionRepositoryMock()
             advisorRepository = AdvisorRepositoryMock()
+            notificationPreferencesRepository = NotificationPreferencesStore(context.applicationContext)
         } else {
             val api = apiClient.api
             val reader = RemoteMonitoringReader(api, sessionStore)
@@ -79,6 +106,7 @@ class AppContainer(context: Context) {
             deviceRepository = DeviceRepositoryRemote(api, reader)
             subscriptionRepository = SubscriptionRepositoryRemote(api)
             advisorRepository = AdvisorRepositoryRemote(api, reader)
+            notificationPreferencesRepository = NotificationPreferencesRemote(api)
         }
     }
 

@@ -10,6 +10,7 @@ import com.osoterra.mobile.data.remote.dto.FarmDto
 import com.osoterra.mobile.data.remote.dto.PasswordResetRequestDto
 import com.osoterra.mobile.data.remote.dto.PlotDto
 import com.osoterra.mobile.data.remote.dto.PlotIdDto
+import com.osoterra.mobile.data.remote.dto.RecordCorrectiveActionDto
 import com.osoterra.mobile.data.remote.dto.RegisterCalibrationDto
 import com.osoterra.mobile.data.remote.dto.RegisterFarmDto
 import com.osoterra.mobile.data.remote.dto.RegisterPlotDto
@@ -18,6 +19,8 @@ import com.osoterra.mobile.data.remote.dto.SignUpDto
 import com.osoterra.mobile.data.remote.dto.SoilReadingDto
 import com.osoterra.mobile.data.repository.SessionStore
 import com.osoterra.mobile.domain.model.Alert
+import com.osoterra.mobile.domain.model.CorrectiveActionType
+import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.Calibration
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Device
@@ -36,6 +39,7 @@ import com.osoterra.mobile.domain.repository.AlertRepository
 import com.osoterra.mobile.domain.repository.AuthRepository
 import com.osoterra.mobile.domain.repository.DeviceRepository
 import com.osoterra.mobile.domain.repository.FarmRepository
+import com.osoterra.mobile.domain.repository.NotificationPreferencesRepository
 import com.osoterra.mobile.domain.repository.PlotRepository
 import com.osoterra.mobile.domain.repository.SubscriptionRepository
 import kotlinx.coroutines.async
@@ -255,6 +259,35 @@ class AlertRepositoryRemote(
 
     override suspend fun acknowledge(alertId: String): DataResult<Unit> =
         apiCall { api.acknowledgeAlert(alertId.toLong()); Unit }
+
+    override suspend fun recordCorrectiveAction(
+        alertId: String,
+        type: CorrectiveActionType,
+        notes: String,
+    ): DataResult<Unit> = apiCall {
+        api.recordCorrectiveAction(
+            alertId.toLong(),
+            RecordCorrectiveActionDto(
+                actionType = type.name,
+                executedAt = isoDateOrToday(""),
+                notes = notes.trim().ifBlank { null },
+            ),
+        )
+        Unit
+    }
+}
+
+/** Preferencias de notificación guardadas en el Backend (Salinity Alerting). */
+class NotificationPreferencesRemote(private val api: OsoTerraApi) : NotificationPreferencesRepository {
+
+    override suspend fun getPreferences(): DataResult<NotificationPreferences> = apiCall {
+        api.myNotificationPreference().toPreferences()
+    }
+
+    override suspend fun savePreferences(preferences: NotificationPreferences): DataResult<Unit> = apiCall {
+        api.setNotificationPreference(preferences.toSetDto())
+        Unit
+    }
 }
 
 class DeviceRepositoryRemote(

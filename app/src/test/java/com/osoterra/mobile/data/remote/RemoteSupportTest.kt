@@ -1,6 +1,8 @@
 package com.osoterra.mobile.data.remote
 
+import com.osoterra.mobile.data.remote.dto.NotificationPreferenceDto
 import com.osoterra.mobile.domain.model.AlertSeverity
+import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.SalinityLevel
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -36,5 +38,17 @@ class RemoteSupportTest {
     fun `splits the full name into first and last names`() {
         assertEquals("Elena" to "Ramos Díaz", splitFullName("  Elena   Ramos Díaz "))
         assertEquals("Elena" to "Elena", splitFullName("Elena"))
+    }
+
+    @Test
+    fun `maps notification preferences both ways with the Backend contract`() {
+        val fromApi = NotificationPreferenceDto(id = 1, minimumSeverity = "WARNING", channel = "BOTH").toPreferences()
+        assertEquals(NotificationPreferences(AlertSeverity.HIGH, pushEnabled = true, emailEnabled = true), fromApi)
+
+        val emailOnly = NotificationPreferences(AlertSeverity.CRITICAL, pushEnabled = false, emailEnabled = true).toSetDto()
+        assertEquals("CRITICAL", emailOnly.minimumSeverity)
+        assertEquals("EMAIL", emailOnly.channel)
+        assertEquals("PUSH", NotificationPreferences(AlertSeverity.MEDIUM, true, false).toSetDto().channel)
+        assertEquals("WATCH", NotificationPreferences(AlertSeverity.LOW, true, false).toSetDto().minimumSeverity)
     }
 }

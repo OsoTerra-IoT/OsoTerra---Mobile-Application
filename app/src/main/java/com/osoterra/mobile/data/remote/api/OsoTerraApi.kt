@@ -1,6 +1,9 @@
 package com.osoterra.mobile.data.remote.api
 
 import com.osoterra.mobile.data.remote.dto.ActivationCodeDto
+import com.osoterra.mobile.data.remote.dto.NotificationPreferenceDto
+import com.osoterra.mobile.data.remote.dto.RecordCorrectiveActionDto
+import com.osoterra.mobile.data.remote.dto.SetNotificationPreferenceDto
 import com.osoterra.mobile.data.remote.dto.AuthenticatedUserDto
 import com.osoterra.mobile.data.remote.dto.CalibrationRecordDto
 import com.osoterra.mobile.data.remote.dto.CropDto
@@ -20,9 +23,11 @@ import com.osoterra.mobile.data.remote.dto.SoilReadingDto
 import com.osoterra.mobile.data.remote.dto.SubscriptionDto
 import com.osoterra.mobile.data.remote.dto.SubscriptionPlanDto
 import com.osoterra.mobile.data.remote.dto.UserAccountDto
+import kotlinx.serialization.json.JsonObject
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -105,4 +110,16 @@ interface OsoTerraApi {
 
     @POST("salinity-alerts/{id}/acknowledgement")
     suspend fun acknowledgeAlert(@Path("id") alertId: Long): SalinityAlertDto
+
+    @POST("salinity-alerts/{id}/corrective-actions")
+    suspend fun recordCorrectiveAction(
+        @Path("id") alertId: Long,
+        @Body body: RecordCorrectiveActionDto,
+    ): JsonObject
+
+    @GET("notification-preferences/mine")
+    suspend fun myNotificationPreference(): NotificationPreferenceDto
+
+    @PUT("notification-preferences/mine")
+    suspend fun setNotificationPreference(@Body body: SetNotificationPreferenceDto): NotificationPreferenceDto
 }

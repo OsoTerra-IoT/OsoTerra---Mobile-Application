@@ -179,3 +179,25 @@ data class SalinityAlertDto(
     val status: String,
     val generatedAt: String,
 )
+
+@Serializable
+data class RecordCorrectiveActionDto(
+    val actionType: String,
+    val executedAt: String,
+    val notes: String? = null,
+)
+
+@Serializable
+data class NotificationPreferenceDto(
+    val id: Long? = null,
+    val minimumSeverity: String,
+    val channel: String,
+    val pushDeviceToken: String? = null,
+)
+
+@Serializable
+data class SetNotificationPreferenceDto(
+    val minimumSeverity: String,
+    val channel: String,
+    val pushDeviceToken: String? = null,
+)

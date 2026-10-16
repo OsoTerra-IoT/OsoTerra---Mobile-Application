@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.osoterra.mobile.core.util.DataResult
 import com.osoterra.mobile.domain.model.AlertSeverity
 import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.repository.NotificationPreferencesRepository
@@ -22,22 +23,25 @@ class NotificationPreferencesStore(
         val EMAIL = booleanPreferencesKey("email_enabled")
     }
 
-    override suspend fun getPreferences(): NotificationPreferences {
+    override suspend fun getPreferences(): DataResult<NotificationPreferences> {
         val prefs = context.prefsDataStore.data.first()
         val severity = runCatching { AlertSeverity.valueOf(prefs[Keys.MIN_SEVERITY] ?: "") }
             .getOrDefault(AlertSeverity.MEDIUM)
-        return NotificationPreferences(
-            minSeverity = severity,
-            pushEnabled = prefs[Keys.PUSH] ?: true,
-            emailEnabled = prefs[Keys.EMAIL] ?: false,
+        return DataResult.Success(
+            NotificationPreferences(
+                minSeverity = severity,
+                pushEnabled = prefs[Keys.PUSH] ?: true,
+                emailEnabled = prefs[Keys.EMAIL] ?: false,
+            ),
         )
     }
 
-    override suspend fun savePreferences(preferences: NotificationPreferences) {
+    override suspend fun savePreferences(preferences: NotificationPreferences): DataResult<Unit> {
         context.prefsDataStore.edit { prefs ->
             prefs[Keys.MIN_SEVERITY] = preferences.minSeverity.name
             prefs[Keys.PUSH] = preferences.pushEnabled
             prefs[Keys.EMAIL] = preferences.emailEnabled
         }
+        return DataResult.Success(Unit)
     }
 }

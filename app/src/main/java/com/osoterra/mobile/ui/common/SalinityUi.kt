@@ -89,6 +89,41 @@ fun SalinityLevel.label(): String = stringResource(
     }
 )
 
+/** Severidad de una alerta en la misma escala visual que los niveles de salinidad. */
+fun AlertSeverity.asLevel(): SalinityLevel = when (this) {
+    AlertSeverity.LOW -> SalinityLevel.NORMAL
+    AlertSeverity.MEDIUM -> SalinityLevel.WATCH
+    AlertSeverity.HIGH -> SalinityLevel.WARNING
+    AlertSeverity.CRITICAL -> SalinityLevel.CRITICAL
+}
+
+@Composable
+fun AlertSeverity.label(): String = stringResource(
+    when (this) {
+        AlertSeverity.LOW -> R.string.severity_low
+        AlertSeverity.MEDIUM -> R.string.severity_medium
+        AlertSeverity.HIGH -> R.string.severity_high
+        AlertSeverity.CRITICAL -> R.string.severity_critical
+    }
+)
+
+/** Píldora de severidad: ícono y texto con los colores del nivel equivalente. */
+@Composable
+fun SeverityChip(severity: AlertSeverity, modifier: Modifier = Modifier) {
+    val level = severity.asLevel()
+    Row(
+        modifier = modifier
+            .background(level.containerColor(), RoundedCornerShape(50))
+            .padding(start = 10.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(level.icon(), contentDescription = null, tint = level.color(), modifier = Modifier.size(18.dp))
+        // Mismo vocabulario que los niveles de salinidad del tablero y del detalle.
+        Text(text = level.label(), color = level.color(), style = MaterialTheme.typography.labelMedium)
+    }
+}
+
 fun AlertSeverity.color(): Color = when (this) {
     AlertSeverity.LOW -> SalinityNormal
     AlertSeverity.MEDIUM -> SalinityWatch
