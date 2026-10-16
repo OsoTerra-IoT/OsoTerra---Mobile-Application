@@ -8,8 +8,13 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+/**
+ * Cliente HTTP del RESTful API. Agrega el token de la sesión y, si el Backend lo rechaza
+ * (401 con sesión iniciada), avisa con [onUnauthorized] para cerrar la sesión.
+ */
 class ApiClient(
     private val tokenProvider: () -> String?,
+    private val onUnauthorized: () -> Unit = {},
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -28,10 +33,11 @@ class ApiClient(
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
                     .addHeader("Accept-Language", "es-419")
-                tokenProvider()?.let { token ->
-                    requestBuilder.addHeader("Authorization", "Bearer $token")
-                }
-                chain.proceed(requestBuilder.build())
+                val token = tokenProvider()
+                token?.let { requestBuilder.addHeader("Authorization", "Bearer $it") }
+                val response = chain.proceed(requestBuilder.build())
+                if (response.code == 401 && token != null) onUnauthorized()
+                response
             }
             .addInterceptor(logging)
             .build()
