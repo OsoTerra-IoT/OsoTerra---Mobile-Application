@@ -32,7 +32,7 @@
     <!-- Alertas -->
     <string name="alerts_title">Centro de notificaciones</string>
     <string name="alerts_empty">No tienes alertas pendientes</string>
-    <string name="alerts_acknowledge">Marcar como atendida</string>
+    <string name="alerts_acknowledge">Marcar como vista</string>
 
     <!-- Perfil -->
     <string name="profile_title">Mi perfil</string>
@@ -90,6 +90,7 @@
 
     <!-- Comunes -->
     <string name="common_cancel">Cancelar</string>
+    <string name="common_back">Volver</string>
     <string name="common_confirm">Confirmar</string>
     <string name="common_retry">Reintentar</string>
 
@@ -143,4 +144,76 @@
     <string name="advisor_compare_n">Comparar (%1$d)</string>
     <string name="advisor_compare_title">Comparación de parcelas</string>
     <string name="advisor_compare_subtitle">Conductividad eléctrica (dS/m) por parcela en el periodo.</string>
+
+    <!-- Inicio (rediseño) -->
+    <string name="startup_tagline">Conoce la salinidad de tu suelo</string>
+    <string name="startup_loading">Cargando</string>
+    <string name="login_headline">Conoce tu suelo.
+Protege tu cosecha.</string>
+    <string name="login_hint">Entra a tu espacio de monitoreo de suelos.</string>
+    <string name="login_show_password">Mostrar contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_probe_reading">1.2 dS/m</string>
+    <string name="login_demo_note">Modo demostración: entra con cualquier correo y contraseña. Los datos son de ejemplo.</string>
+    <string name="dashboard_hello">Hola, %1$s</string>
+    <string name="dashboard_hello_anonymous">Hola</string>
+    <string name="dashboard_refresh">Actualizar</string>
+    <plurals name="dashboard_attention">
+        <item quantity="one">%1$d de tus %2$d parcelas necesita atención.</item>
+        <item quantity="other">%1$d de tus %2$d parcelas necesitan atención.</item>
+    </plurals>
+    <plurals name="dashboard_all_clear">
+        <item quantity="one">Tu parcela está bajo el umbral del cultivo.</item>
+        <item quantity="other">Tus %1$d parcelas están bajo el umbral del cultivo.</item>
+    </plurals>
+    <string name="dashboard_stat_plots">Parcelas</string>
+    <string name="dashboard_stat_alerts">Alertas activas</string>
+    <string name="dashboard_stat_devices">Sensores en línea</string>
+    <string name="dashboard_section">Salinidad por parcela</string>
+    <string name="dashboard_ratio">%1$d %% del umbral (%2$s dS/m)</string>
+    <string name="dashboard_legend">La línea vertical de cada franja marca el umbral de salinidad del cultivo.</string>
+    <string name="dashboard_device_offline">Sensor sin conexión</string>
+    <string name="dashboard_no_readings">Aún sin mediciones</string>
+    <string name="dashboard_empty_hint">Registra una parcela y vincula su sensor para ver la salinidad aquí.</string>
+    <string name="dashboard_retry">Reintentar</string>
+    <string name="salinity_strip_description">Conductividad al %1$d %% del umbral del cultivo</string>
+    <string name="session_expired">Tu sesión expiró. Inicia sesión de nuevo.</string>
+
+    <!-- Alertas y acciones correctivas (Sprint 2) -->
+    <string name="alerts_heading">Alertas</string>
+    <string name="alerts_summary_none">Estás al día con tus alertas.</string>
+    <plurals name="alerts_summary">
+        <item quantity="one">%1$d alerta necesita tu atención.</item>
+        <item quantity="other">%1$d alertas necesitan tu atención.</item>
+    </plurals>
+    <string name="alerts_empty_hint">Te avisaremos cuando la salinidad de una parcela pase el umbral de su cultivo.</string>
+    <string name="alerts_acknowledged">Vista</string>
+    <string name="alerts_record_action">Registrar acción</string>
+    <string name="alerts_severity_label">Severidad %1$s</string>
+    <string name="action_sheet_title">¿Qué hiciste en %1$s?</string>
+    <string name="action_sheet_hint">Al registrar la acción, la alerta queda resuelta.</string>
+    <string name="action_notes">Notas (opcional)</string>
+    <string name="action_save">Guardar acción</string>
+    <string name="action_saved">Acción registrada. La alerta quedó resuelta.</string>
+    <string name="notif_keep_one_channel">Deja al menos un canal activo para recibir las alertas.</string>
+    <string name="notif_saved">Preferencias guardadas.</string>
+    <!-- Detalle de parcela (Sprint 2) -->
+    <string name="detail_more">Más opciones</string>
+    <string name="detail_ratio">%1$d %% del umbral de %2$s (%3$s dS/m)</string>
+    <string name="detail_no_crop">Asigna un cultivo para comparar la salinidad con su umbral.</string>
+    <string name="detail_no_readings">Aún no hay lecturas. Revisa que el sensor esté instalado y con señal.</string>
+    <string name="detail_reading">Lectura actual: %1$s dS/m</string>
+    <string name="detail_moisture">Humedad</string>
+    <string name="detail_temperature">Temperatura</string>
+    <string name="detail_crop">Cultivo</string>
+    <string name="detail_last_reading">Última lectura</string>
+    <string name="detail_area">Superficie</string>
+    <string name="detail_sensor">Sensor</string>
+    <string name="detail_sensor_online">En línea</string>
+    <string name="detail_sensor_offline">Sin conexión</string>
+    <string name="detail_history">Conductividad en el tiempo</string>
+    <string name="detail_history_hint">La línea punteada es el umbral del cultivo.</string>
+    <string name="detail_chart_description">Gráfico de %1$d lecturas, de %2$s a %3$s dS/m; la última es %4$s dS/m.</string>
+    <string name="detail_recent">Últimas lecturas</string>
+    <string name="detail_load_error">No se pudo cargar la parcela.</string>
 </resources>

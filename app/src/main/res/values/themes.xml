@@ -3,7 +3,8 @@
     <!-- Tema base. La apariencia real la define Compose (ui/theme). Este tema solo
          evita la ActionBar del sistema y fija el color de fondo de la ventana. -->
     <style name="Theme.OsoTerra" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/white</item>
-        <item name="android:statusBarColor">@color/osoterra_green</item>
+        <item name="android:windowBackground">@color/osoterra_salt</item>
+        <item name="android:statusBarColor">@color/osoterra_salt</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

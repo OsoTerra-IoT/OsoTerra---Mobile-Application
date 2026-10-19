@@ -1,7 +1,9 @@
 package com.osoterra.mobile.data.repository
 
 import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.data.remote.salinityLevel
 import com.osoterra.mobile.domain.model.Alert
+import com.osoterra.mobile.domain.model.CorrectiveActionType
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Farm
 import com.osoterra.mobile.domain.model.NewPlot
@@ -104,7 +106,10 @@ class PlotRepositoryMock(
     private val farmRepository: FarmRepositoryMock,
 ) : PlotRepository {
 
-    private val plots = MockData.plots.toMutableList()
+    // El nivel se calcula con la misma regla que el Backend, no se fija a mano.
+    private val plots = MockData.plots
+        .map { it.copy(salinityLevel = salinityLevel(it.lastEcDsPerM, it.crop?.thresholdDsPerM)) }
+        .toMutableList()
 
     override suspend fun getPlots(): DataResult<List<Plot>> {
         delay(500.milliseconds)
@@ -169,11 +174,24 @@ class PlotRepositoryMock(
 
 class AlertRepositoryMock : AlertRepository {
     private val acknowledged = mutableSetOf<String>()
+    private val resolved = mutableSetOf<String>()
 
     override suspend fun getAlerts(): DataResult<List<Alert>> {
         delay(400.milliseconds)
-        val list = MockData.alerts.map { it.copy(acknowledged = it.acknowledged || it.id in acknowledged) }
+        val list = MockData.alerts
+            .filter { it.id !in resolved }
+            .map { it.copy(acknowledged = it.acknowledged || it.id in acknowledged) }
         return DataResult.Success(list)
+    }
+
+    override suspend fun recordCorrectiveAction(
+        alertId: String,
+        type: CorrectiveActionType,
+        notes: String,
+    ): DataResult<Unit> {
+        delay(300.milliseconds)
+        resolved += alertId
+        return DataResult.Success(Unit)
     }
 
     override suspend fun acknowledge(alertId: String): DataResult<Unit> {

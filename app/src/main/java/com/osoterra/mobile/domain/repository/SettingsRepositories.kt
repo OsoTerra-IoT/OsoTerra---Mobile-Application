@@ -5,8 +5,8 @@ import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.Subscription
 
 interface NotificationPreferencesRepository {
-    suspend fun getPreferences(): NotificationPreferences
-    suspend fun savePreferences(preferences: NotificationPreferences)
+    suspend fun getPreferences(): DataResult<NotificationPreferences>
+    suspend fun savePreferences(preferences: NotificationPreferences): DataResult<Unit>
 }
 
 interface SubscriptionRepository {

@@ -2,19 +2,34 @@ package com.osoterra.mobile.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val OsoGreen = Color(0xFF2E6E4E)
-val OsoGreenDark = Color(0xFF1B4D34)
-val OsoGreenLight = Color(0xFFA8D5BA)
-val OsoEarth = Color(0xFF8C6D46)
-val OsoEarthLight = Color(0xFFE8DFD3)
-val OsoSand = Color(0xFFF6F1E7)
+// Tokens de la guía de estilo (sección 5.1 del informe), los mismos de la Landing Page y la Web App.
+val Emerald50 = Color(0xFFECFDF5)
+val Emerald100 = Color(0xFFD1FAE5)
+/** Íconos y elementos grandes. */
+val Emerald600 = Color(0xFF059669)
+/** Acción: botones con texto blanco (contraste 5,48:1). */
+val Emerald700 = Color(0xFF047857)
+val Emerald800 = Color(0xFF065F46)
+val Emerald900 = Color(0xFF064E3B)
+val SurfaceGreen = Color(0xFFF0FDF4)
 
-val SalinityNormal = Color(0xFF2E7D32)
-val SalinityWatch = Color(0xFFF9A825)
-val SalinityWarning = Color(0xFFEF6C00)
-val SalinityCritical = Color(0xFFC62828)
-val SalinityNoData = Color(0xFF9E9E9E)
+/** Tinta «suelo» para texto principal. */
+val Ink = Color(0xFF16211C)
+/** Fondo «sal», gris verdoso frío. */
+val Salt = Color(0xFFF5F7F6)
+val Line = Color(0xFFE3E8E5)
+val Track = Color(0xFFEAEFEC)
+val Neutral600 = Color(0xFF4B5563)
+val White = Color(0xFFFFFFFF)
 
-val NeutralWhite = Color(0xFFFFFFFF)
-val NeutralBlack = Color(0xFF1A1C19)
-val NeutralGray = Color(0xFF5F625C)
+// Niveles de salinidad: texto oscuro sobre fondo suave, siempre con ícono y etiqueta.
+val SalinityNormal = Color(0xFF1B6234)
+val SalinityNormalContainer = Color(0xFFE1F0E4)
+val SalinityWatch = Color(0xFF70510B)
+val SalinityWatchContainer = Color(0xFFFFF1C6)
+val SalinityWarning = Color(0xFF85440D)
+val SalinityWarningContainer = Color(0xFFFFF0DD)
+val SalinityCritical = Color(0xFFA12426)
+val SalinityCriticalContainer = Color(0xFFFFEAEB)
+val SalinityNoData = Color(0xFF6B7280)
+val SalinityNoDataContainer = Color(0xFFF3F4F6)

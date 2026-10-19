@@ -69,6 +69,15 @@ data class Reading(
 
 enum class AlertSeverity { LOW, MEDIUM, HIGH, CRITICAL }
 
+/** Acciones correctivas que acepta el Backend; registrar una resuelve la alerta. */
+enum class CorrectiveActionType(val label: String) {
+    LEACHING("Lavado de sales"),
+    IRRIGATION_ADJUSTMENT("Ajuste de riego"),
+    DRAINAGE_IMPROVEMENT("Mejora del drenaje"),
+    SOIL_AMENDMENT("Enmienda del suelo"),
+    CROP_ROTATION("Rotación de cultivo"),
+}
+
 data class Alert(
     val id: String,
     val plotId: String,

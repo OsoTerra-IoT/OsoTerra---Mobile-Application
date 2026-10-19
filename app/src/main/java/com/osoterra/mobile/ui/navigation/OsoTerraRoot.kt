@@ -1,6 +1,9 @@
 package com.osoterra.mobile.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -9,9 +12,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -23,6 +31,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.osoterra.mobile.R
+import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.ui.advisor.AdvisorCompareScreen
 import com.osoterra.mobile.ui.advisor.AdvisorDashboardScreen
 import com.osoterra.mobile.ui.alerts.AlertsScreen
@@ -60,13 +69,32 @@ fun OsoTerraRoot() {
 
     val showBottomBar = currentRoute in bottomDestinations.map { it.route }
 
+    // Si el Backend rechaza el token (sesión vencida), se vuelve al login y se avisa.
+    val container = rememberAppContainer()
+    val sessionExpired by container.sessionExpired.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val expiredMessage = stringResource(R.string.session_expired)
+    LaunchedEffect(sessionExpired) {
+        if (!sessionExpired) return@LaunchedEffect
+        container.acknowledgeExpiredSession()
+        if (currentRoute != Routes.LOGIN) {
+            navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+        }
+        snackbarHostState.showSnackbar(expiredMessage)
+    }
+
     fun goToDashboardClearing(from: String) {
         navController.navigate(Routes.DASHBOARD) {
             popUpTo(from) { inclusive = true }
         }
     }
 
+    // El login dibuja su propio panel detrás de la barra de estado.
+    val fullBleed = currentRoute == Routes.LOGIN
+
     Scaffold(
+        contentWindowInsets = if (fullBleed) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -93,7 +121,10 @@ fun OsoTerraRoot() {
         NavHost(
             navController = navController,
             startDestination = Routes.STARTUP,
-            modifier = Modifier.padding(innerPadding),
+            // Consumir los insets evita que los Scaffold de cada pantalla los apliquen otra vez.
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
         ) {
             composable(Routes.STARTUP) {
                 StartupScreen(

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.osoterra.mobile.core.util.DataResult
 import com.osoterra.mobile.di.AppContainer
 import com.osoterra.mobile.domain.model.Alert
+import com.osoterra.mobile.domain.model.CorrectiveActionType
 import com.osoterra.mobile.domain.repository.AlertRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,15 @@ data class AlertsUiState(
     val isLoading: Boolean = true,
     val alerts: List<Alert> = emptyList(),
     val errorMessage: String? = null,
+    /** Alerta para la que se está registrando una acción correctiva (hoja abierta). */
+    val actionFor: Alert? = null,
+    val isSaving: Boolean = false,
+    val actionError: String? = null,
+    /** Mensaje breve para el snackbar tras una operación. */
+    val notice: Notice? = null,
 )
+
+enum class Notice { ACTION_SAVED }
 
 class AlertsViewModel(
     private val alertRepository: AlertRepository,
@@ -32,11 +41,17 @@ class AlertsViewModel(
     }
 
     fun loadAlerts() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = it.alerts.isEmpty(), errorMessage = null) }
         viewModelScope.launch {
             when (val result = alertRepository.getAlerts()) {
                 is DataResult.Success -> _uiState.update {
-                    it.copy(isLoading = false, alerts = result.data.sortedByDescending { a -> !a.acknowledged })
+                    // Primero las no vistas; dentro de cada grupo, la más severa.
+                    it.copy(
+                        isLoading = false,
+                        alerts = result.data.sortedWith(
+                            compareBy<Alert> { a -> a.acknowledged }.thenByDescending { a -> a.severity.ordinal },
+                        ),
+                    )
                 }
                 is DataResult.Error -> _uiState.update {
                     it.copy(isLoading = false, errorMessage = result.message)
@@ -47,10 +62,39 @@ class AlertsViewModel(
 
     fun acknowledge(alertId: String) {
         viewModelScope.launch {
-            alertRepository.acknowledge(alertId)
-            loadAlerts()
+            when (val result = alertRepository.acknowledge(alertId)) {
+                is DataResult.Success -> loadAlerts()
+                is DataResult.Error -> _uiState.update { it.copy(errorMessage = result.message) }
+            }
         }
     }
+
+    fun openAction(alert: Alert) = _uiState.update { it.copy(actionFor = alert, actionError = null) }
+
+    fun dismissAction() = _uiState.update { if (it.isSaving) it else it.copy(actionFor = null, actionError = null) }
+
+    fun recordAction(type: CorrectiveActionType, notes: String) {
+        val alert = _uiState.value.actionFor ?: return
+        _uiState.update { it.copy(isSaving = true, actionError = null) }
+        viewModelScope.launch {
+            when (val result = alertRepository.recordCorrectiveAction(alert.id, type, notes)) {
+                is DataResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            actionFor = null,
+                            alerts = it.alerts.filterNot { a -> a.id == alert.id },
+                            notice = Notice.ACTION_SAVED,
+                        )
+                    }
+                    loadAlerts()
+                }
+                is DataResult.Error -> _uiState.update { it.copy(isSaving = false, actionError = result.message) }
+            }
+        }
+    }
+
+    fun noticeShown() = _uiState.update { it.copy(notice = null) }
 
     companion object {
         fun provideFactory(container: AppContainer) = viewModelFactory {

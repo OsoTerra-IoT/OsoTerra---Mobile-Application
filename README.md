@@ -12,7 +12,7 @@ web (ver arquitectura C4 del informe: `Mobile Application [Container: Kotlin / A
 - **Kotlin** + **Jetpack Compose** (Material 3)
 - Arquitectura **MVVM + Clean Architecture** (capas `data` / `domain` / `ui`)
 - **Navigation Compose**
-- **Retrofit + OkHttp + kotlinx.serialization** (capa de red lista, hoy tras repos mock)
+- **Retrofit + OkHttp + kotlinx.serialization** contra el RESTful API del Backend
 - **DataStore** (sesión/preferencias — pendiente)
 - Inyección de dependencias manual (`AppContainer`)
 
@@ -47,8 +47,15 @@ Base funcional navegable con **datos de ejemplo** (mock). Implementado:
 - **Alertas (EP07):** centro de notificaciones (US32) y reconocimiento (US33).
 - **Perfil:** datos del usuario, accesos a fincas/catálogo y cierre de sesión.
 
-El **contrato que la app espera del RESTful API** está en
-[`docs/API-CONTRACT.md`](docs/API-CONTRACT.md) — entregarlo al equipo de backend.
+### Conexión con el Backend
+
+La app consume el RESTful API de OsoSense (ver [`docs/API-CONTRACT.md`](docs/API-CONTRACT.md)).
+Los repositorios remotos están en `data/remote/`; los mock siguen disponibles para demos sin Backend.
+
+| Modo | Comando | Datos |
+|---|---|---|
+| Demo (por defecto) | `./gradlew assembleDebug` | Repositorios mock |
+| Backend real | `./gradlew assembleDebug -Posoterra.fakeApi=false` | `http://10.0.2.2:8080/api/v1/` (Backend local desde el emulador) |
 
 ## Cómo abrir
 
