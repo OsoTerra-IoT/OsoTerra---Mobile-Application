@@ -192,14 +192,16 @@ private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrat
 
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Filled.BatteryFull,
-                    contentDescription = null,
-                    tint = if (device.batteryPct < 20) SalinityCritical else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(Modifier.size(4.dp))
-                Text("${device.batteryPct}%", style = MaterialTheme.typography.bodyLarge)
+                device.batteryPct?.let { battery ->
+                    Icon(
+                        Icons.Filled.BatteryFull,
+                        contentDescription = null,
+                        tint = if (battery < 20) SalinityCritical else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text("$battery%", style = MaterialTheme.typography.bodyLarge)
+                }
                 Spacer(Modifier.weight(1f))
                 device.lastSeen?.let {
                     Text(

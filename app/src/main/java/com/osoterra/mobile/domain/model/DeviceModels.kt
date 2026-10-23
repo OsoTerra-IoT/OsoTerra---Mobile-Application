@@ -8,7 +8,7 @@ data class Device(
     val plotId: String?,
     val plotName: String?,
     val status: DeviceStatus,
-    val batteryPct: Int,
+    val batteryPct: Int?, // null while the sensor has not reported it (the v1 firmware does not measure it)
     val lastSeen: String?,
 )
 

@@ -45,7 +45,7 @@ class DeviceRepositoryMock(
             plotId = plotId,
             plotName = plotName,
             status = DeviceStatus.ONLINE,
-            batteryPct = 100,
+            batteryPct = null,
             lastSeen = null,
         )
         devices += device

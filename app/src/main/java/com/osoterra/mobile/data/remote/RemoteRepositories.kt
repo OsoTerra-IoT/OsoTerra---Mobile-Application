@@ -358,7 +358,7 @@ class DeviceRepositoryRemote(
             (batteryLevel ?: 100) < 20 -> DeviceStatus.LOW_BATTERY
             else -> DeviceStatus.ONLINE
         },
-        batteryPct = batteryLevel ?: 0,
+        batteryPct = batteryLevel,
         lastSeen = displayDateTime(lastSeenAt),
     )
 }
