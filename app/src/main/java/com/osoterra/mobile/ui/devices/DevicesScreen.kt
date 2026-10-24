@@ -60,7 +60,9 @@ import com.osoterra.mobile.ui.theme.SalinityCritical
 import com.osoterra.mobile.ui.theme.SalinityNoData
 import com.osoterra.mobile.ui.theme.SalinityNormal
 import com.osoterra.mobile.ui.theme.SalinityWatch
-import java.time.LocalDate
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private fun DeviceStatus.color(): Color = when (this) {
     DeviceStatus.ONLINE -> SalinityNormal
@@ -321,7 +323,8 @@ private fun CalibrationDialog(
     onConfirm: (referenceValue: Double, date: String) -> Unit,
 ) {
     var value by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(LocalDate.now().toString()) }
+    // Hoy en YYYY-MM-DD sin java.time, que exige API 26 y la app admite desde API 24.
+    var date by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) }
 
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
