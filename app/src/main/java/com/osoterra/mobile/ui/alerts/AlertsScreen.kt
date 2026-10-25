@@ -1,6 +1,12 @@
 package com.osoterra.mobile.ui.alerts
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -15,11 +21,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DoneAll
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -45,6 +52,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -61,8 +70,16 @@ import com.osoterra.mobile.ui.common.EmptyCard
 import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.ui.common.ScreenHeader
 import com.osoterra.mobile.ui.common.SeverityChip
+import com.osoterra.mobile.ui.common.OsoMotion
 import com.osoterra.mobile.ui.common.SkeletonCard
+import com.osoterra.mobile.ui.common.StaggeredEntrance
+import com.osoterra.mobile.ui.common.color
+import com.osoterra.mobile.ui.common.dsPerM
+import com.osoterra.mobile.ui.common.motionTween
+import com.osoterra.mobile.ui.common.rememberReducedMotion
 import com.osoterra.mobile.ui.theme.Emerald700
+import com.osoterra.mobile.ui.theme.Line
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,12 +89,16 @@ fun AlertsScreen() {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val savedMessage = stringResource(R.string.action_saved)
+    val acknowledgedMessage = stringResource(R.string.alerts_acknowledged_notice)
 
     LaunchedEffect(state.notice) {
-        if (state.notice == Notice.ACTION_SAVED) {
-            viewModel.noticeShown()
-            snackbar.showSnackbar(savedMessage)
+        val message = when (state.notice) {
+            Notice.ACTION_SAVED -> savedMessage
+            Notice.ACKNOWLEDGED -> acknowledgedMessage
+            null -> return@LaunchedEffect
         }
+        viewModel.noticeShown()
+        snackbar.showSnackbar(message)
     }
 
     Scaffold(
@@ -100,27 +121,39 @@ fun AlertsScreen() {
                     val pending = state.alerts.count { !it.acknowledged }
                     ScreenHeader(
                         eyebrow = stringResource(R.string.alerts_heading),
-                        title = if (state.alerts.isEmpty()) stringResource(R.string.alerts_summary_none)
-                        else pluralStringResource(R.plurals.alerts_summary, maxOf(pending, 1), maxOf(pending, 1)),
+                        title = when {
+                            // Mientras carga no se afirma nada: el titular llega con los datos.
+                            state.isLoading -> ""
+                            pending == 0 -> stringResource(R.string.alerts_summary_none)
+                            else -> pluralStringResource(R.plurals.alerts_summary, pending, pending)
+                        },
                     )
                 }
                 when {
-                    state.isLoading -> items(3) { SkeletonCard(height = 170.dp) }
+                    state.isLoading -> items(3, key = { "skeleton-$it" }) {
+                        Box(Modifier.animateItem()) { SkeletonCard(height = 200.dp) }
+                    }
                     state.errorMessage != null && state.alerts.isEmpty() -> item(key = "error") {
-                        ErrorCard(state.errorMessage!!, onRetry = viewModel::loadAlerts)
+                        Box(Modifier.animateItem()) { ErrorCard(state.errorMessage!!, onRetry = viewModel::loadAlerts) }
                     }
                     state.alerts.isEmpty() -> item(key = "empty") {
-                        EmptyCard(
-                            title = stringResource(R.string.alerts_empty),
-                            hint = stringResource(R.string.alerts_empty_hint),
-                        )
+                        Box(Modifier.animateItem()) {
+                            EmptyCard(
+                                title = stringResource(R.string.alerts_empty),
+                                hint = stringResource(R.string.alerts_empty_hint),
+                                icon = Icons.Outlined.NotificationsNone,
+                            )
+                        }
                     }
-                    else -> items(state.alerts, key = { it.id }) { alert ->
-                        AlertCard(
-                            alert = alert,
-                            onAcknowledge = { viewModel.acknowledge(alert.id) },
-                            onRecordAction = { viewModel.openAction(alert) },
-                        )
+                    else -> itemsIndexed(state.alerts, key = { _, alert -> alert.id }) { index, alert ->
+                        // animateItem: al marcarla como atendida, la tarjeta se reordena con movimiento.
+                        StaggeredEntrance(index, Modifier.animateItem()) {
+                            AlertCard(
+                                alert = alert,
+                                onAcknowledge = { viewModel.acknowledge(alert.id) },
+                                onRecordAction = { viewModel.openAction(alert) },
+                            )
+                        }
                     }
                 }
             }
@@ -138,18 +171,58 @@ fun AlertsScreen() {
     }
 }
 
+/** Mensaje de la alerta en el idioma de la app, con la ECe, el porcentaje y el umbral. */
+@Composable
+private fun Alert.displayMessage(): String {
+    val observed = observedDsPerM
+    val threshold = thresholdDsPerM
+    if (observed == null || threshold == null || threshold <= 0.0) return message
+    return stringResource(R.string.alerts_message, observed.dsPerM(), (observed / threshold * 100).roundToInt(), threshold.dsPerM(1))
+}
+
+@Composable
+private fun CorrectiveActionType.label(): String = stringResource(
+    when (this) {
+        CorrectiveActionType.LEACHING -> R.string.action_leaching
+        CorrectiveActionType.IRRIGATION_ADJUSTMENT -> R.string.action_irrigation_adjustment
+        CorrectiveActionType.DRAINAGE_IMPROVEMENT -> R.string.action_drainage_improvement
+        CorrectiveActionType.SOIL_AMENDMENT -> R.string.action_soil_amendment
+        CorrectiveActionType.CROP_ROTATION -> R.string.action_crop_rotation
+    },
+)
+
+/**
+ * Tarjeta de alerta: barra lateral del color del nivel (guía 5.1), píldora con ícono y palabra,
+ * y las dos acciones visibles. Al marcarla como atendida, la barra se apaga en 150 ms.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: () -> Unit) {
+    val reducedMotion = rememberReducedMotion()
+    val barColor by animateColorAsState(
+        if (alert.acknowledged) Line else alert.severity.color(),
+        motionTween(OsoMotion.STATE, reducedMotion),
+        label = "alertBar",
+    )
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
     ) {
-        Column(Modifier.padding(20.dp)) {
+        // Barra lateral dibujada detrás del contenido, así ocupa toda la altura de la tarjeta.
+        Column(
+            Modifier
+                .drawBehind { drawRect(barColor, size = Size(6.dp.toPx(), size.height)) }
+                .padding(start = 26.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SeverityChip(alert.severity)
                 Spacer(Modifier.weight(1f))
-                if (alert.acknowledged) {
+                AnimatedVisibility(
+                    visible = alert.acknowledged,
+                    enter = fadeIn(motionTween(OsoMotion.STATE, reducedMotion)),
+                    exit = fadeOut(motionTween(OsoMotion.STATE, reducedMotion)),
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Outlined.DoneAll,
@@ -169,18 +242,20 @@ private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: (
             Spacer(Modifier.height(12.dp))
             Text(alert.plotName, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(4.dp))
-            Text(alert.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text(alert.displayMessage(), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(4.dp))
             Text(alert.createdAt, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = onRecordAction,
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(50),
                     modifier = Modifier.heightIn(min = 48.dp),
                 ) { Text(stringResource(R.string.alerts_record_action)) }
                 if (!alert.acknowledged) {
                     TextButton(onClick = onAcknowledge, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp), tint = Emerald700)
+                        Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.alerts_acknowledge), color = Emerald700)
                     }
                 }
@@ -227,7 +302,7 @@ private fun CorrectiveActionSheet(
                     FilterChip(
                         selected = type == option,
                         onClick = { type = option },
-                        label = { Text(option.label) },
+                        label = { Text(option.label()) },
                         leadingIcon = if (type == option) {
                             { Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
                         } else null,
@@ -257,13 +332,13 @@ private fun CorrectiveActionSheet(
                 OutlinedButton(
                     onClick = onDismiss,
                     enabled = !isSaving,
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(50),
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                 ) { Text(stringResource(R.string.common_cancel)) }
                 Button(
                     onClick = { onSave(type, notes) },
                     enabled = !isSaving,
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(50),
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                 ) { Text(stringResource(R.string.action_save)) }
             }

@@ -131,10 +131,11 @@ fun RegisterScreen(
                 )
             }
 
-            if (state.errorMessage != null) {
+            val error = state.errorRes?.let { stringResource(it) } ?: state.errorMessage
+            if (error != null) {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = state.errorMessage!!,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                 )

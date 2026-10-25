@@ -51,6 +51,12 @@ android {
         compose = true
         buildConfig = true
     }
+    // El idioma se cambia dentro de la app (LocaleStore): el bundle debe traer los dos idiomas.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
 }
 
 dependencies {

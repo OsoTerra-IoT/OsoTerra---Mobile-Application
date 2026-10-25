@@ -1,5 +1,9 @@
 package com.osoterra.mobile.ui.profile
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,10 +27,15 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.CardMembership
 import androidx.compose.material.icons.outlined.Grass
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -36,13 +45,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.osoterra.mobile.R
+import com.osoterra.mobile.core.util.LocaleStore
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
@@ -97,6 +111,7 @@ fun ProfileScreen(
             user?.let { IdentityRow(it) }
             EntryGroup(field)
             EntryGroup(account)
+            LanguageCard()
             Spacer(Modifier.height(8.dp))
             OutlinedButton(
                 onClick = {
@@ -147,9 +162,64 @@ private fun IdentityRow(user: User) {
     }
 }
 
+/**
+ * Selector de idioma ES / EN, como el de la Web App. La app abre en español; al cambiar,
+ * se guarda la elección y la pantalla se vuelve a crear con los textos del otro idioma.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguageCard() {
+    val context = LocalContext.current
+    val current = remember { LocaleStore.language(context) }
+    val options = listOf(
+        LocaleStore.SPANISH to stringResource(R.string.language_es),
+        LocaleStore.ENGLISH to stringResource(R.string.language_en),
+    )
+    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
+        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Language, contentDescription = null, tint = Emerald800)
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    stringResource(R.string.profile_language),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.semantics { heading() },
+                )
+            }
+            Text(
+                stringResource(R.string.profile_language_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+            )
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                options.forEachIndexed { index, (code, label) ->
+                    SegmentedButton(
+                        selected = current == code,
+                        onClick = {
+                            if (current != code) {
+                                LocaleStore.setLanguage(context, code)
+                                context.findActivity()?.recreate()
+                            }
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) { Text(label) }
+                }
+            }
+        }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 @Composable
 private fun EntryGroup(entries: List<ProfileEntry>) {
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
             entries.forEachIndexed { index, entry ->
                 if (index > 0) HorizontalDivider(color = Line, modifier = Modifier.padding(start = 56.dp))

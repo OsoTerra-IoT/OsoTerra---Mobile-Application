@@ -1,8 +1,9 @@
-<resources>
-    <string name="app_name">OsoTerra</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="es">
+    <!-- Idioma por defecto: español (es_419), como la Web App. El inglés está en values-en. -->
+    <string name="app_name" translatable="false">OsoTerra</string>
 
     <!-- Login -->
-    <string name="login_title">OsoTerra</string>
+    <string name="login_title" translatable="false">OsoTerra</string>
     <string name="login_subtitle">Monitorea la salud de tu suelo</string>
     <string name="login_email">Correo electrónico</string>
     <string name="login_password">Contraseña</string>
@@ -20,19 +21,18 @@
     <!-- Dashboard -->
     <string name="dashboard_title">Mis parcelas</string>
     <string name="dashboard_empty">Aún no tienes parcelas registradas</string>
-    <string name="dashboard_last_reading">Última medición: %1$s</string>
+    <string name="dashboard_last_reading">Última lectura: %1$s</string>
 
-    <!-- Estados de salinidad -->
+    <!-- Niveles de salinidad (guía de estilo 5.1, iguales en la Web App) -->
     <string name="salinity_normal">Normal</string>
-    <string name="salinity_watch">En observación</string>
-    <string name="salinity_warning">Advertencia</string>
-    <string name="salinity_critical">Crítico</string>
-    <string name="salinity_no_data">Sin datos</string>
+    <string name="salinity_watch">En vigilancia</string>
+    <string name="salinity_high">Alto</string>
+    <string name="salinity_critical">Muy alto</string>
+    <string name="salinity_no_data">Sin lectura</string>
 
     <!-- Alertas -->
-    <string name="alerts_title">Centro de notificaciones</string>
     <string name="alerts_empty">No tienes alertas pendientes</string>
-    <string name="alerts_acknowledge">Marcar como vista</string>
+    <string name="alerts_acknowledge">Marcar como atendida</string>
 
     <!-- Perfil -->
     <string name="profile_title">Mi perfil</string>
@@ -41,6 +41,10 @@
     <string name="profile_crops">Catálogo de cultivos</string>
     <string name="profile_role_producer">Productor</string>
     <string name="profile_role_advisor">Asesor técnico</string>
+    <string name="profile_language">Idioma</string>
+    <string name="profile_language_hint">La app se abre en español. Puedes cambiar a inglés cuando quieras.</string>
+    <string name="language_es" translatable="false">Español</string>
+    <string name="language_en" translatable="false">English</string>
 
     <!-- Registro -->
     <string name="register_title">Crear cuenta</string>
@@ -51,6 +55,7 @@
     <string name="register_license">Número de colegiatura</string>
     <string name="register_button">Registrarme</string>
     <string name="register_success">Cuenta creada correctamente</string>
+    <string name="register_error_required">Completa todos los campos obligatorios</string>
 
     <!-- Recuperar contraseña -->
     <string name="forgot_title">Recuperar contraseña</string>
@@ -79,6 +84,7 @@
     <string name="plot_crop_none">Sin cultivo</string>
     <string name="plot_save">Guardar parcela</string>
     <string name="plot_area_error">La superficie debe ser mayor a cero</string>
+    <string name="plot_select_farm">Selecciona una finca</string>
     <string name="plot_need_farm">Primero registra una finca</string>
     <string name="plot_deactivate">Dar de baja la parcela</string>
     <string name="plot_deactivate_confirm">¿Dar de baja esta parcela? Se liberará el cupo de tu plan.</string>
@@ -86,13 +92,25 @@
 
     <!-- Catálogo de cultivos -->
     <string name="crops_title">Catálogo de cultivos</string>
-    <string name="crops_threshold">Umbral: %1$s dS/m</string>
+    <string name="crops_threshold">Umbral de ECe: %1$s dS/m</string>
 
     <!-- Comunes -->
     <string name="common_cancel">Cancelar</string>
     <string name="common_back">Volver</string>
     <string name="common_confirm">Confirmar</string>
     <string name="common_retry">Reintentar</string>
+    <string name="common_loading">Cargando</string>
+    <string name="common_expanded">Desplegado</string>
+    <string name="common_collapsed">Plegado</string>
+    <string name="unit_ds_m" translatable="false">dS/m</string>
+
+    <!-- ECe y dS/m explicados en pocas palabras (problema 6 de la evaluación heurística) -->
+    <string name="ece_help_open">Qué son ECe y dS/m</string>
+    <string name="ece_help_title">¿Qué mide la ECe?</string>
+    <string name="ece_help_what">ECe es la conductividad eléctrica del suelo, medida en su extracto de saturación: indica cuánta sal hay en él. Es la medida con la que se fijan los umbrales de cada cultivo.</string>
+    <string name="ece_help_unit">Se expresa en dS/m (decisiemens por metro). A más dS/m, más sal.</string>
+    <string name="ece_help_threshold">Cada cultivo tolera hasta un umbral; por ejemplo, la uva de mesa hasta 1.5 dS/m. Si la ECe pasa ese umbral, la sal empieza a bajar la cosecha.</string>
+    <string name="ece_help_close">Entendido</string>
 
     <!-- Dispositivos -->
     <string name="profile_devices">Mis dispositivos</string>
@@ -107,20 +125,14 @@
     <string name="device_offline">Fuera de línea</string>
     <string name="device_last_seen">Último reporte: %1$s</string>
     <string name="device_calibrate">Calibrar</string>
-    <string name="device_reference_value">Valor de laboratorio (dS/m)</string>
+    <string name="device_reference_value">ECe de laboratorio (dS/m)</string>
     <string name="device_sample_date">Fecha del muestreo (AAAA-MM-DD)</string>
     <string name="device_last_calibration">Última calibración: %1$s · factor %2$s</string>
-
-    <!-- Severidad de alertas -->
-    <string name="severity_low">Baja</string>
-    <string name="severity_medium">Media</string>
-    <string name="severity_high">Alta</string>
-    <string name="severity_critical">Crítica</string>
 
     <!-- Preferencias de notificación -->
     <string name="profile_notifications">Preferencias de notificación</string>
     <string name="notif_settings_title">Notificaciones</string>
-    <string name="notif_min_severity">Nivel mínimo de severidad</string>
+    <string name="notif_min_severity">Nivel mínimo de las alertas</string>
     <string name="notif_min_severity_hint">Recibirás avisos de este nivel en adelante.</string>
     <string name="notif_channels">Canales de entrega</string>
     <string name="notif_channel_push">Notificación push</string>
@@ -143,7 +155,7 @@
     <string name="advisor_filter_all">Todos</string>
     <string name="advisor_compare_n">Comparar (%1$d)</string>
     <string name="advisor_compare_title">Comparación de parcelas</string>
-    <string name="advisor_compare_subtitle">Conductividad eléctrica (dS/m) por parcela en el periodo.</string>
+    <string name="advisor_compare_subtitle">ECe (dS/m) de cada parcela en el periodo.</string>
 
     <!-- Inicio (rediseño) -->
     <string name="startup_tagline">Conoce la salinidad de tu suelo</string>
@@ -153,17 +165,26 @@ Protege tu cosecha.</string>
     <string name="login_hint">Entra a tu espacio de monitoreo de suelos.</string>
     <string name="login_show_password">Mostrar contraseña</string>
     <string name="login_hide_password">Ocultar contraseña</string>
-    <string name="login_probe_reading">1.2 dS/m</string>
+    <string name="login_probe_reading" translatable="false">1.2 dS/m</string>
     <string name="login_demo_note">Modo demostración: entra con cualquier correo y contraseña. Los datos son de ejemplo.</string>
     <string name="dashboard_hello">Hola, %1$s</string>
     <string name="dashboard_hello_anonymous">Hola</string>
     <string name="dashboard_refresh">Actualizar</string>
+    <!-- Solo cuenta las parcelas en Alto o Muy alto (problema 1); En vigilancia se nombra aparte. -->
     <plurals name="dashboard_attention">
         <item quantity="one">%1$d de tus %2$d parcelas necesita atención.</item>
+        <item quantity="many">%1$d de tus %2$d parcelas necesitan atención.</item>
         <item quantity="other">%1$d de tus %2$d parcelas necesitan atención.</item>
+    </plurals>
+    <string name="dashboard_no_attention">Ninguna parcela necesita atención hoy.</string>
+    <plurals name="dashboard_watch">
+        <item quantity="one">%1$d parcela está en vigilancia: está sobre el umbral, pero todavía cerca.</item>
+        <item quantity="many">%1$d parcelas están en vigilancia: están sobre el umbral, pero todavía cerca.</item>
+        <item quantity="other">%1$d parcelas están en vigilancia: están sobre el umbral, pero todavía cerca.</item>
     </plurals>
     <plurals name="dashboard_all_clear">
         <item quantity="one">Tu parcela está bajo el umbral del cultivo.</item>
+        <item quantity="many">Tus %1$d parcelas están bajo el umbral del cultivo.</item>
         <item quantity="other">Tus %1$d parcelas están bajo el umbral del cultivo.</item>
     </plurals>
     <string name="dashboard_stat_plots">Parcelas</string>
@@ -171,12 +192,13 @@ Protege tu cosecha.</string>
     <string name="dashboard_stat_devices">Sensores en línea</string>
     <string name="dashboard_section">Salinidad por parcela</string>
     <string name="dashboard_ratio">%1$d %% del umbral (%2$s dS/m)</string>
-    <string name="dashboard_legend">La línea vertical de cada franja marca el umbral de salinidad del cultivo.</string>
+    <string name="dashboard_legend">Cada franja muestra la ECe actual frente al umbral de su cultivo, marcado con la línea vertical.</string>
     <string name="dashboard_device_offline">Sensor sin conexión</string>
-    <string name="dashboard_no_readings">Aún sin mediciones</string>
-    <string name="dashboard_empty_hint">Registra una parcela y vincula su sensor para ver la salinidad aquí.</string>
-    <string name="dashboard_retry">Reintentar</string>
-    <string name="salinity_strip_description">Conductividad al %1$d %% del umbral del cultivo</string>
+    <string name="dashboard_no_readings">Aún sin lecturas</string>
+    <string name="dashboard_empty_hint">Registra una parcela y conecta su dispositivo para ver la salinidad aquí.</string>
+    <string name="dashboard_plot_description">%1$s, %2$s, ECe de %3$s</string>
+    <string name="salinity_strip_description">ECe al %1$d %% del umbral del cultivo</string>
+    <string name="salinity_strip_no_data">Sin lectura de ECe</string>
     <string name="session_expired">Tu sesión expiró. Inicia sesión de nuevo.</string>
 
     <!-- Alertas y acciones correctivas (Sprint 2) -->
@@ -184,25 +206,33 @@ Protege tu cosecha.</string>
     <string name="alerts_summary_none">Estás al día con tus alertas.</string>
     <plurals name="alerts_summary">
         <item quantity="one">%1$d alerta necesita tu atención.</item>
+        <item quantity="many">%1$d alertas necesitan tu atención.</item>
         <item quantity="other">%1$d alertas necesitan tu atención.</item>
     </plurals>
     <string name="alerts_empty_hint">Te avisaremos cuando la salinidad de una parcela pase el umbral de su cultivo.</string>
-    <string name="alerts_acknowledged">Vista</string>
+    <string name="alerts_acknowledged">Atendida</string>
     <string name="alerts_record_action">Registrar acción</string>
-    <string name="alerts_severity_label">Severidad %1$s</string>
+    <string name="alerts_message">ECe de %1$s, %2$d %% del umbral del cultivo (%3$s).</string>
+    <string name="alerts_acknowledged_notice">Alerta marcada como atendida.</string>
     <string name="action_sheet_title">¿Qué hiciste en %1$s?</string>
     <string name="action_sheet_hint">Al registrar la acción, la alerta queda resuelta.</string>
     <string name="action_notes">Notas (opcional)</string>
     <string name="action_save">Guardar acción</string>
     <string name="action_saved">Acción registrada. La alerta quedó resuelta.</string>
+    <string name="action_leaching">Lavado de sales</string>
+    <string name="action_irrigation_adjustment">Ajuste de riego</string>
+    <string name="action_drainage_improvement">Mejora del drenaje</string>
+    <string name="action_soil_amendment">Enmienda del suelo</string>
+    <string name="action_crop_rotation">Rotación de cultivo</string>
     <string name="notif_keep_one_channel">Deja al menos un canal activo para recibir las alertas.</string>
     <string name="notif_saved">Preferencias guardadas.</string>
+
     <!-- Detalle de parcela (Sprint 2) -->
     <string name="detail_more">Más opciones</string>
     <string name="detail_ratio">%1$d %% del umbral de %2$s (%3$s dS/m)</string>
     <string name="detail_no_crop">Asigna un cultivo para comparar la salinidad con su umbral.</string>
-    <string name="detail_no_readings">Aún no hay lecturas. Revisa que el sensor esté instalado y con señal.</string>
-    <string name="detail_reading">Lectura actual: %1$s dS/m</string>
+    <string name="detail_no_readings">Aún no hay lecturas. Conecta tu dispositivo para ver la salinidad de esta parcela.</string>
+    <string name="detail_reading">ECe actual: %1$s</string>
     <string name="detail_moisture">Humedad</string>
     <string name="detail_temperature">Temperatura</string>
     <string name="detail_crop">Cultivo</string>
@@ -212,8 +242,26 @@ Protege tu cosecha.</string>
     <string name="detail_sensor_online">En línea</string>
     <string name="detail_sensor_offline">Sin conexión</string>
     <string name="detail_history">Conductividad en el tiempo</string>
-    <string name="detail_history_hint">La línea punteada es el umbral del cultivo.</string>
-    <string name="detail_chart_description">Gráfico de %1$d lecturas, de %2$s a %3$s dS/m; la última es %4$s dS/m.</string>
-    <string name="detail_recent">Últimas lecturas</string>
+    <string name="detail_history_hint">La línea verde es la ECe medida; la punteada roja, el umbral del cultivo. Los fondos de color marcan cada nivel.</string>
+    <string name="detail_history_hint_no_crop">La línea verde es la ECe medida. Asigna un cultivo para ver su umbral.</string>
     <string name="detail_load_error">No se pudo cargar la parcela.</string>
+
+    <!-- Gráfico de ECe: rótulos, resumen y tabla (problema 9) -->
+    <string name="chart_threshold_label">Umbral %1$s dS/m</string>
+    <plurals name="chart_summary">
+        <item quantity="one">%1$d lectura del %2$s al %3$s, entre %4$s y %5$s dS/m. La última es %6$s.</item>
+        <item quantity="many">%1$d lecturas del %2$s al %3$s, entre %4$s y %5$s dS/m. La última es %6$s.</item>
+        <item quantity="other">%1$d lecturas del %2$s al %3$s, entre %4$s y %5$s dS/m. La última es %6$s.</item>
+    </plurals>
+    <plurals name="chart_summary_same_day">
+        <item quantity="one">%1$d lectura el %2$s, entre %3$s y %4$s dS/m. La última es %5$s.</item>
+        <item quantity="many">%1$d lecturas el %2$s, entre %3$s y %4$s dS/m. La última es %5$s.</item>
+        <item quantity="other">%1$d lecturas el %2$s, entre %3$s y %4$s dS/m. La última es %5$s.</item>
+    </plurals>
+    <string name="chart_summary_over">Está sobre el umbral del cultivo (%1$s).</string>
+    <string name="chart_summary_under">Está bajo el umbral del cultivo (%1$s).</string>
+    <string name="chart_table_show">Ver tabla de lecturas</string>
+    <string name="chart_table_hide">Ocultar tabla de lecturas</string>
+    <string name="chart_col_reading">ECe y fecha</string>
+    <string name="chart_col_level">Nivel</string>
 </resources>
