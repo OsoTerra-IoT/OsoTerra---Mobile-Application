@@ -1,6 +1,7 @@
 package com.osoterra.mobile.ui.auth.register
 
 import androidx.lifecycle.ViewModel
+import com.osoterra.mobile.R
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -23,6 +24,8 @@ data class RegisterUiState(
     val licenseNumber: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    /** Error de validación propio de la pantalla, como recurso para mostrarlo en el idioma de la app. */
+    val errorRes: Int? = null,
     val success: Boolean = false,
 )
 
@@ -33,20 +36,20 @@ class RegisterViewModel(
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
-    fun onNameChange(v: String) = _uiState.update { it.copy(fullName = v, errorMessage = null) }
-    fun onEmailChange(v: String) = _uiState.update { it.copy(email = v, errorMessage = null) }
-    fun onPasswordChange(v: String) = _uiState.update { it.copy(password = v, errorMessage = null) }
-    fun onLicenseChange(v: String) = _uiState.update { it.copy(licenseNumber = v, errorMessage = null) }
-    fun onRoleChange(role: UserRole) = _uiState.update { it.copy(role = role, errorMessage = null) }
+    fun onNameChange(v: String) = _uiState.update { it.copy(fullName = v, errorMessage = null, errorRes = null) }
+    fun onEmailChange(v: String) = _uiState.update { it.copy(email = v, errorMessage = null, errorRes = null) }
+    fun onPasswordChange(v: String) = _uiState.update { it.copy(password = v, errorMessage = null, errorRes = null) }
+    fun onLicenseChange(v: String) = _uiState.update { it.copy(licenseNumber = v, errorMessage = null, errorRes = null) }
+    fun onRoleChange(role: UserRole) = _uiState.update { it.copy(role = role, errorMessage = null, errorRes = null) }
 
     fun register() {
         val s = _uiState.value
         if (s.isLoading) return
         if (s.fullName.isBlank() || s.email.isBlank() || s.password.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Completa todos los campos obligatorios") }
+            _uiState.update { it.copy(errorRes = R.string.register_error_required) }
             return
         }
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, errorRes = null) }
         viewModelScope.launch {
             val data = RegisterData(
                 fullName = s.fullName.trim(),

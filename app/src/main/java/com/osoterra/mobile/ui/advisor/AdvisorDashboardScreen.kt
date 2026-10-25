@@ -166,7 +166,7 @@ private fun SupervisedPlotCard(plot: SupervisedPlot, selected: Boolean, onToggle
             Column(Modifier.weight(1f)) {
                 Text(plot.plotName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    "${plot.producerName} · ${plot.cropName ?: "Sin cultivo"}",
+                    "${plot.producerName} · ${plot.cropName ?: stringResource(R.string.plot_crop_none)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

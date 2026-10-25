@@ -1,6 +1,7 @@
 package com.osoterra.mobile.ui.plot
 
 import androidx.lifecycle.ViewModel
+import com.osoterra.mobile.R
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -29,6 +30,8 @@ data class CreatePlotUiState(
     val selectedCropId: String? = null,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
+    /** Error de validación propio de la pantalla, como recurso para mostrarlo en el idioma de la app. */
+    val errorRes: Int? = null,
     val success: Boolean = false,
 )
 
@@ -61,8 +64,8 @@ class CreatePlotViewModel(
     }
 
     fun onFarmSelected(id: String) = _uiState.update { it.copy(selectedFarmId = id) }
-    fun onNameChange(v: String) = _uiState.update { it.copy(name = v, errorMessage = null) }
-    fun onAreaChange(v: String) = _uiState.update { it.copy(area = v, errorMessage = null) }
+    fun onNameChange(v: String) = _uiState.update { it.copy(name = v, errorMessage = null, errorRes = null) }
+    fun onAreaChange(v: String) = _uiState.update { it.copy(area = v, errorMessage = null, errorRes = null) }
     fun onLatChange(v: String) = _uiState.update { it.copy(latitude = v) }
     fun onLngChange(v: String) = _uiState.update { it.copy(longitude = v) }
     fun onCropSelected(id: String?) = _uiState.update { it.copy(selectedCropId = id) }
@@ -72,15 +75,15 @@ class CreatePlotViewModel(
         if (s.isSaving) return
         val farmId = s.selectedFarmId
         if (farmId == null) {
-            _uiState.update { it.copy(errorMessage = "Selecciona una finca") }
+            _uiState.update { it.copy(errorRes = R.string.plot_select_farm) }
             return
         }
         val area = s.area.replace(",", ".").toDoubleOrNull()
         if (area == null || area <= 0.0) {
-            _uiState.update { it.copy(errorMessage = "La superficie debe ser mayor a cero") }
+            _uiState.update { it.copy(errorRes = R.string.plot_area_error) }
             return
         }
-        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        _uiState.update { it.copy(isSaving = true, errorMessage = null, errorRes = null) }
         viewModelScope.launch {
             val newPlot = NewPlot(
                 farmId = farmId,
