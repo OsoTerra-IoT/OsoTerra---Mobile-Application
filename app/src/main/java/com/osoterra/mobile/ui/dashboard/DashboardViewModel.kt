@@ -26,9 +26,16 @@ data class DashboardUiState(
     val activeAlerts: Int = 0,
     val errorMessage: String? = null,
 ) {
-    /** Parcelas sobre el umbral de su cultivo, de la más a la menos urgente. */
+    /**
+     * Parcelas que necesitan atención: solo las de nivel Alto o Muy alto, la misma regla que
+     * sus píldoras y que la Web App. Las que están En vigilancia se cuentan aparte.
+     */
     val needingAttention: List<Plot>
         get() = plots.filter { it.salinityLevel in ATTENTION }
+
+    /** Parcelas En vigilancia: sobre el umbral, pero aún cerca de él. */
+    val onWatch: List<Plot>
+        get() = plots.filter { it.salinityLevel == SalinityLevel.WATCH }
 
     val sortedPlots: List<Plot>
         get() = plots.sortedWith(compareByDescending<Plot> { it.salinityLevel.urgency() }.thenBy { it.name })
@@ -37,13 +44,13 @@ data class DashboardUiState(
     val totalHectares: Double get() = plots.sumOf { it.areaHectares }
 
     private companion object {
-        val ATTENTION = setOf(SalinityLevel.WATCH, SalinityLevel.WARNING, SalinityLevel.CRITICAL)
+        val ATTENTION = setOf(SalinityLevel.HIGH, SalinityLevel.CRITICAL)
     }
 }
 
 private fun SalinityLevel.urgency(): Int = when (this) {
     SalinityLevel.CRITICAL -> 4
-    SalinityLevel.WARNING -> 3
+    SalinityLevel.HIGH -> 3
     SalinityLevel.WATCH -> 2
     SalinityLevel.NORMAL -> 1
     SalinityLevel.NO_DATA -> 0
