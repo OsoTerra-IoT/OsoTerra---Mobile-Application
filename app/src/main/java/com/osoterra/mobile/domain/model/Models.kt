@@ -61,21 +61,27 @@ data class Plot(
 data class Reading(
     val id: String,
     val timestamp: String,
+    /** Fecha y hora ISO local (AAAA-MM-DDTHH:MM) para rotular el eje del gráfico; null si no se conoce. */
+    val capturedAt: String? = null,
 
     val ecDsPerM: Double,
     val humidityPct: Double,
     val temperatureC: Double,
 )
 
-enum class AlertSeverity { LOW, MEDIUM, HIGH, CRITICAL }
+/**
+ * Severidad de una alerta, en el orden del Backend (WATCH, WARNING, CRITICAL). En pantalla se
+ * nombra como el nivel de salinidad equivalente: En vigilancia, Alto y Muy alto.
+ */
+enum class AlertSeverity { WATCH, HIGH, CRITICAL }
 
 /** Acciones correctivas que acepta el Backend; registrar una resuelve la alerta. */
-enum class CorrectiveActionType(val label: String) {
-    LEACHING("Lavado de sales"),
-    IRRIGATION_ADJUSTMENT("Ajuste de riego"),
-    DRAINAGE_IMPROVEMENT("Mejora del drenaje"),
-    SOIL_AMENDMENT("Enmienda del suelo"),
-    CROP_ROTATION("Rotación de cultivo"),
+enum class CorrectiveActionType {
+    LEACHING,
+    IRRIGATION_ADJUSTMENT,
+    DRAINAGE_IMPROVEMENT,
+    SOIL_AMENDMENT,
+    CROP_ROTATION,
 }
 
 data class Alert(
@@ -86,4 +92,7 @@ data class Alert(
     val message: String,
     val createdAt: String,
     val acknowledged: Boolean,
+    /** Datos con los que la pantalla arma el mensaje en el idioma de la app. */
+    val observedDsPerM: Double? = null,
+    val thresholdDsPerM: Double? = null,
 )

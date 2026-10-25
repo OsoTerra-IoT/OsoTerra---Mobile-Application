@@ -1,7 +1,7 @@
 package com.osoterra.mobile.domain.model
 
 data class NotificationPreferences(
-    val minSeverity: AlertSeverity = AlertSeverity.MEDIUM,
+    val minSeverity: AlertSeverity = AlertSeverity.WATCH,
     val pushEnabled: Boolean = true,
     val emailEnabled: Boolean = false,
 )

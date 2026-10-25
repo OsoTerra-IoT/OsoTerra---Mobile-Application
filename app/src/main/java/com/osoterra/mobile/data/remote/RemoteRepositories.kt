@@ -241,15 +241,12 @@ class AlertRepositoryRemote(
                             plotId = plot.id.toString(),
                             plotName = plot.name,
                             severity = alertSeverity(alert.severity),
-                            message = String.format(
-                                Locale.forLanguageTag("es-PE"),
-                                "CE de %.2f dS/m, %.0f %% del umbral del cultivo (%.1f dS/m).",
-                                alert.observedConductivityDsM,
-                                alert.excessRatio * 100,
-                                alert.appliedThresholdDsM,
-                            ),
+                            // La pantalla arma el mensaje en el idioma de la app con estos datos.
+                            message = "",
                             createdAt = displayDateTime(alert.generatedAt).orEmpty(),
                             acknowledged = alert.status == "ACKNOWLEDGED",
+                            observedDsPerM = alert.observedConductivityDsM,
+                            thresholdDsPerM = alert.appliedThresholdDsM,
                         )
                     }
                 }

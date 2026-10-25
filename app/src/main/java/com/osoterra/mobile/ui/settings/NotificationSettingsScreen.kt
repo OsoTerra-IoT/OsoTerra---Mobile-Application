@@ -53,8 +53,8 @@ import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.ui.common.SeverityChip
 import com.osoterra.mobile.ui.common.SkeletonCard
 
-/** Niveles que el Backend distingue (vigilancia, advertencia y crítica). */
-private val selectableSeverities = listOf(AlertSeverity.MEDIUM, AlertSeverity.HIGH, AlertSeverity.CRITICAL)
+/** Niveles que el Backend distingue: En vigilancia, Alto y Muy alto (WATCH, WARNING, CRITICAL). */
+private val selectableSeverities = AlertSeverity.entries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,8 +112,7 @@ fun NotificationSettingsScreen(
                     ) {
                         Column(Modifier.selectableGroup()) {
                             selectableSeverities.forEach { severity ->
-                                val selected = state.preferences.minSeverity == severity ||
-                                    (severity == AlertSeverity.MEDIUM && state.preferences.minSeverity == AlertSeverity.LOW)
+                                val selected = state.preferences.minSeverity == severity
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -168,7 +167,7 @@ fun NotificationSettingsScreen(
 
 @Composable
 private fun Section(title: String, hint: String?, content: @Composable () -> Unit) {
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
             Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
             if (hint != null) {

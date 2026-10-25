@@ -1,9 +1,7 @@
 package com.osoterra.mobile.ui.common
 
-import android.provider.Settings
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,8 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -24,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,10 +31,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.osoterra.mobile.R
 import com.osoterra.mobile.domain.model.AlertSeverity
@@ -43,12 +41,12 @@ import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.ui.theme.Ink
 import com.osoterra.mobile.ui.theme.SalinityCritical
 import com.osoterra.mobile.ui.theme.SalinityCriticalContainer
+import com.osoterra.mobile.ui.theme.SalinityHigh
+import com.osoterra.mobile.ui.theme.SalinityHighContainer
 import com.osoterra.mobile.ui.theme.SalinityNoData
 import com.osoterra.mobile.ui.theme.SalinityNoDataContainer
 import com.osoterra.mobile.ui.theme.SalinityNormal
 import com.osoterra.mobile.ui.theme.SalinityNormalContainer
-import com.osoterra.mobile.ui.theme.SalinityWarning
-import com.osoterra.mobile.ui.theme.SalinityWarningContainer
 import com.osoterra.mobile.ui.theme.SalinityWatch
 import com.osoterra.mobile.ui.theme.SalinityWatchContainer
 import com.osoterra.mobile.ui.theme.Track
@@ -57,7 +55,7 @@ import com.osoterra.mobile.ui.theme.Track
 fun SalinityLevel.color(): Color = when (this) {
     SalinityLevel.NORMAL -> SalinityNormal
     SalinityLevel.WATCH -> SalinityWatch
-    SalinityLevel.WARNING -> SalinityWarning
+    SalinityLevel.HIGH -> SalinityHigh
     SalinityLevel.CRITICAL -> SalinityCritical
     SalinityLevel.NO_DATA -> SalinityNoData
 }
@@ -65,16 +63,17 @@ fun SalinityLevel.color(): Color = when (this) {
 fun SalinityLevel.containerColor(): Color = when (this) {
     SalinityLevel.NORMAL -> SalinityNormalContainer
     SalinityLevel.WATCH -> SalinityWatchContainer
-    SalinityLevel.WARNING -> SalinityWarningContainer
+    SalinityLevel.HIGH -> SalinityHighContainer
     SalinityLevel.CRITICAL -> SalinityCriticalContainer
     SalinityLevel.NO_DATA -> SalinityNoDataContainer
 }
 
+/** Íconos de la guía 5.1: círculo con check, ojo, triángulo, círculo con X y signo de pregunta. */
 fun SalinityLevel.icon(): ImageVector = when (this) {
     SalinityLevel.NORMAL -> Icons.Outlined.CheckCircle
     SalinityLevel.WATCH -> Icons.Outlined.Visibility
-    SalinityLevel.WARNING -> Icons.Outlined.WarningAmber
-    SalinityLevel.CRITICAL -> Icons.Outlined.ErrorOutline
+    SalinityLevel.HIGH -> Icons.Outlined.WarningAmber
+    SalinityLevel.CRITICAL -> Icons.Outlined.Cancel
     SalinityLevel.NO_DATA -> Icons.Outlined.HelpOutline
 }
 
@@ -83,80 +82,56 @@ fun SalinityLevel.label(): String = stringResource(
     when (this) {
         SalinityLevel.NORMAL -> R.string.salinity_normal
         SalinityLevel.WATCH -> R.string.salinity_watch
-        SalinityLevel.WARNING -> R.string.salinity_warning
+        SalinityLevel.HIGH -> R.string.salinity_high
         SalinityLevel.CRITICAL -> R.string.salinity_critical
         SalinityLevel.NO_DATA -> R.string.salinity_no_data
     }
 )
 
-/** Severidad de una alerta en la misma escala visual que los niveles de salinidad. */
+/**
+ * Severidad de una alerta en la misma escala que los niveles de salinidad: el Backend envía
+ * WATCH, WARNING y CRITICAL, que se muestran como En vigilancia, Alto y Muy alto.
+ */
 fun AlertSeverity.asLevel(): SalinityLevel = when (this) {
-    AlertSeverity.LOW -> SalinityLevel.NORMAL
-    AlertSeverity.MEDIUM -> SalinityLevel.WATCH
-    AlertSeverity.HIGH -> SalinityLevel.WARNING
+    AlertSeverity.WATCH -> SalinityLevel.WATCH
+    AlertSeverity.HIGH -> SalinityLevel.HIGH
     AlertSeverity.CRITICAL -> SalinityLevel.CRITICAL
 }
 
 @Composable
-fun AlertSeverity.label(): String = stringResource(
-    when (this) {
-        AlertSeverity.LOW -> R.string.severity_low
-        AlertSeverity.MEDIUM -> R.string.severity_medium
-        AlertSeverity.HIGH -> R.string.severity_high
-        AlertSeverity.CRITICAL -> R.string.severity_critical
-    }
-)
+fun AlertSeverity.label(): String = asLevel().label()
 
-/** Píldora de severidad: ícono y texto con los colores del nivel equivalente. */
+fun AlertSeverity.color(): Color = asLevel().color()
+
+/** Píldora de severidad de una alerta: la misma que la del nivel equivalente. */
 @Composable
 fun SeverityChip(severity: AlertSeverity, modifier: Modifier = Modifier) {
-    val level = severity.asLevel()
-    Row(
-        modifier = modifier
-            .background(level.containerColor(), RoundedCornerShape(50))
-            .padding(start = 10.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Icon(level.icon(), contentDescription = null, tint = level.color(), modifier = Modifier.size(18.dp))
-        // Mismo vocabulario que los niveles de salinidad del tablero y del detalle.
-        Text(text = level.label(), color = level.color(), style = MaterialTheme.typography.labelMedium)
-    }
+    SalinityChip(level = severity.asLevel(), modifier = modifier)
 }
 
-fun AlertSeverity.color(): Color = when (this) {
-    AlertSeverity.LOW -> SalinityNormal
-    AlertSeverity.MEDIUM -> SalinityWatch
-    AlertSeverity.HIGH -> SalinityWarning
-    AlertSeverity.CRITICAL -> SalinityCritical
-}
-
-/** Píldora de estado: nunca depende solo del color, lleva ícono y texto. */
+/**
+ * Píldora de estado: nunca depende solo del color, lleva ícono y palabra. Si el nivel cambia
+ * (por ejemplo, al actualizar), el color pasa de uno a otro en 150 ms.
+ */
 @Composable
 fun SalinityChip(level: SalinityLevel, modifier: Modifier = Modifier) {
+    val reducedMotion = rememberReducedMotion()
+    val container by animateColorAsState(level.containerColor(), motionTween(OsoMotion.STATE, reducedMotion), label = "pill")
+    val content by animateColorAsState(level.color(), motionTween(OsoMotion.STATE, reducedMotion), label = "pillText")
     Row(
         modifier = modifier
-            .background(level.containerColor(), RoundedCornerShape(50))
+            .background(container, RoundedCornerShape(50))
             .padding(start = 10.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(level.icon(), contentDescription = null, tint = level.color(), modifier = Modifier.size(18.dp))
-        Text(text = level.label(), color = level.color(), style = MaterialTheme.typography.labelMedium)
-    }
-}
-
-/** Si la persona desactivó las animaciones del sistema, se muestran los estados finales. */
-@Composable
-fun rememberReducedMotion(): Boolean {
-    val context = LocalContext.current
-    return remember {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+        Icon(level.icon(), contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
+        Text(text = level.label(), color = content, style = MaterialTheme.typography.labelMedium, maxLines = 1)
     }
 }
 
 /**
- * Franja de salinidad: la conductividad llena la barra en proporción al umbral del cultivo,
+ * Franja de salinidad: la ECe llena la barra en proporción al umbral del cultivo,
  * marcado con una línea vertical al 66 % del ancho (el umbral cae siempre en el mismo sitio,
  * así se comparan parcelas de un vistazo). Se rellena con una animación corta al aparecer.
  */
@@ -173,18 +148,16 @@ fun SalinityStrip(
     val progress = remember { Animatable(if (reducedMotion) target else 0f) }
     LaunchedEffect(target) {
         if (reducedMotion) progress.snapTo(target)
-        else progress.animateTo(target, tween(durationMillis = 700, delayMillis = delayMillis, easing = FastOutSlowInEasing))
+        else progress.animateTo(target, motionTween(OsoMotion.FILL, reducedMotion = false, delayMillis = delayMillis))
     }
-    val description = stringResource(
-        R.string.salinity_strip_description,
-        ratio?.let { (it * 100).toInt() } ?: 0,
-    )
+    val description = if (ratio == null) stringResource(R.string.salinity_strip_no_data)
+    else stringResource(R.string.salinity_strip_description, (ratio * 100).toInt())
     val fill = level.color()
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(12.dp)
-            .semantics { contentDescription = description },
+            .clearAndSetSemantics { contentDescription = description },
     ) {
         val radius = CornerRadius(size.height / 2, size.height / 2)
         drawRoundRect(color = Track, cornerRadius = radius)

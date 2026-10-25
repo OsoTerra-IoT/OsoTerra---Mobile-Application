@@ -9,6 +9,7 @@ import com.osoterra.mobile.domain.model.Reading
 import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
+import com.osoterra.mobile.data.remote.displayDateTime
 import kotlin.random.Random
 
 object MockData {
@@ -56,7 +57,7 @@ object MockData {
             farmName = "Finca San Isidro",
             areaHectares = 1.8,
             crop = maiz,
-            salinityLevel = SalinityLevel.WARNING,
+            salinityLevel = SalinityLevel.HIGH,
             lastEcDsPerM = 1.9,
             lastReadingAt = "Hoy, 07:40",
             deviceOnline = true,
@@ -91,27 +92,33 @@ object MockData {
             plotId = "p-001",
             plotName = "Parcela El Molino",
             severity = AlertSeverity.CRITICAL,
-            message = "La salinidad superó el umbral del arroz (3,0 dS/m). Considera un riego de lavado.",
+            message = "",
             createdAt = "Hoy, 08:16",
             acknowledged = false,
+            observedDsPerM = 4.8,
+            thresholdDsPerM = 3.0,
         ),
         Alert(
             id = "a-002",
             plotId = "p-002",
             plotName = "Parcela La Huaca",
             severity = AlertSeverity.HIGH,
-            message = "La salinidad se acerca al umbral del maíz (1,7 dS/m).",
+            message = "",
             createdAt = "Hoy, 07:41",
             acknowledged = false,
+            observedDsPerM = 1.9,
+            thresholdDsPerM = 1.7,
         ),
         Alert(
             id = "a-003",
             plotId = "p-003",
             plotName = "Parcela Los Ceibos",
-            severity = AlertSeverity.LOW,
-            message = "Lectura estable dentro del rango tolerado por el espárrago.",
+            severity = AlertSeverity.WATCH,
+            message = "",
             createdAt = "Ayer, 18:21",
             acknowledged = true,
+            observedDsPerM = 6.3,
+            thresholdDsPerM = 6.0,
         ),
     )
 
@@ -123,9 +130,11 @@ object MockData {
             else -> 2.0
         }
         return (0 until 24).map { i ->
+            val capturedAt = "2026-10-%02dT%02d:00:00".format(18 + i / 4, (i % 4) * 6)
             Reading(
                 id = "$plotId-r-$i",
-                timestamp = "Día ${(i / 4) + 1}, ${(i % 4) * 6}:00",
+                timestamp = displayDateTime(capturedAt) ?: capturedAt,
+                capturedAt = capturedAt,
                 ecDsPerM = (base + Random.nextDouble(-0.4, 0.6)).coerceAtLeast(0.1),
                 humidityPct = Random.nextDouble(18.0, 34.0),
                 temperatureC = Random.nextDouble(19.0, 28.0),
