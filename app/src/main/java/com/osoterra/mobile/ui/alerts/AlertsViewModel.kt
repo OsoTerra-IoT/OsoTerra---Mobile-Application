@@ -27,7 +27,7 @@ data class AlertsUiState(
     val notice: Notice? = null,
 )
 
-enum class Notice { ACTION_SAVED }
+enum class Notice { ACTION_SAVED, ACKNOWLEDGED }
 
 class AlertsViewModel(
     private val alertRepository: AlertRepository,
@@ -63,7 +63,18 @@ class AlertsViewModel(
     fun acknowledge(alertId: String) {
         viewModelScope.launch {
             when (val result = alertRepository.acknowledge(alertId)) {
-                is DataResult.Success -> loadAlerts()
+                is DataResult.Success -> {
+                    // Se marca en la lista al instante (la tarjeta cambia y se reordena) y luego se recarga.
+                    _uiState.update { state ->
+                        state.copy(
+                            alerts = state.alerts
+                                .map { if (it.id == alertId) it.copy(acknowledged = true) else it }
+                                .sortedWith(compareBy<Alert> { a -> a.acknowledged }.thenByDescending { a -> a.severity.ordinal }),
+                            notice = Notice.ACKNOWLEDGED,
+                        )
+                    }
+                    loadAlerts()
+                }
                 is DataResult.Error -> _uiState.update { it.copy(errorMessage = result.message) }
             }
         }

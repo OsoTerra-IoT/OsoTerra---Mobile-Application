@@ -13,12 +13,12 @@ class AdvisorRepositoryMock : AdvisorRepository {
 
     private val supervised = listOf(
         SupervisedPlot("sp-001", "El Molino", "Juan Pérez", "Arroz", SalinityLevel.CRITICAL, 4.8),
-        SupervisedPlot("sp-002", "La Huaca", "Juan Pérez", "Maíz amarillo duro", SalinityLevel.WARNING, 1.9),
+        SupervisedPlot("sp-002", "La Huaca", "Juan Pérez", "Maíz amarillo duro", SalinityLevel.HIGH, 1.9),
         SupervisedPlot("sp-003", "Los Ceibos", "María Ríos", "Espárrago", SalinityLevel.NORMAL, 3.1),
         SupervisedPlot("sp-004", "Santa Elena", "María Ríos", "Arándano", SalinityLevel.CRITICAL, 2.4),
         SupervisedPlot("sp-005", "El Arenal", "Carlos Díaz", "Palta", SalinityLevel.WATCH, 1.6),
         SupervisedPlot("sp-006", "La Pradera", "Carlos Díaz", "Uva de mesa", SalinityLevel.NORMAL, 1.2),
-        SupervisedPlot("sp-007", "San Rafael", "Carlos Díaz", "Arroz", SalinityLevel.WARNING, 3.4),
+        SupervisedPlot("sp-007", "San Rafael", "Carlos Díaz", "Arroz", SalinityLevel.HIGH, 3.4),
     )
 
     override suspend fun getSupervisedPlots(): DataResult<List<SupervisedPlot>> {

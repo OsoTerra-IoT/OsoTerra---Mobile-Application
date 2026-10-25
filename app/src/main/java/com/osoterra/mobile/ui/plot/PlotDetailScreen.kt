@@ -1,6 +1,10 @@
 package com.osoterra.mobile.ui.plot
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -40,11 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -56,19 +55,24 @@ import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.Reading
+import com.osoterra.mobile.ui.common.EceHelpButton
 import com.osoterra.mobile.ui.common.ErrorCard
+import com.osoterra.mobile.ui.common.OsoMotion
+import com.osoterra.mobile.ui.common.SalinityChip
+import com.osoterra.mobile.ui.common.StaggeredEntrance
+import com.osoterra.mobile.ui.common.dsPerM
+import com.osoterra.mobile.ui.common.fmt
+import com.osoterra.mobile.ui.common.motionTween
+import com.osoterra.mobile.ui.common.rememberReducedMotion
 import com.osoterra.mobile.ui.common.SalinityStrip
 import com.osoterra.mobile.ui.common.SkeletonCard
 import com.osoterra.mobile.ui.common.color
 import com.osoterra.mobile.ui.common.label
-import com.osoterra.mobile.ui.theme.Emerald700
 import com.osoterra.mobile.ui.theme.Line
-import com.osoterra.mobile.ui.theme.SalinityCritical
 import java.util.Locale
 
-private val ES = Locale.forLanguageTag("es-PE")
 
-private fun Double.ds(decimals: Int = 2) = String.format(ES, "%.${decimals}f", this)
+private enum class DetailPhase { LOADING, ERROR, CONTENT }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,19 +139,37 @@ fun PlotDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val plot = state.plot
-            when {
-                state.isLoading -> {
-                    SkeletonCard(height = 200.dp)
-                    SkeletonCard(height = 220.dp)
-                }
-                plot == null -> ErrorCard(
-                    state.errorMessage ?: stringResource(R.string.detail_load_error),
-                    onRetry = viewModel::load,
-                )
-                else -> {
-                    StatusHero(plot)
-                    Facts(plot, state.readings.lastOrNull())
-                    History(plot.crop, state.readings)
+            val reducedMotion = rememberReducedMotion()
+            // Carga → contenido con un fundido corto, sin saltos de tamaño bruscos.
+            AnimatedContent(
+                targetState = when {
+                    state.isLoading -> DetailPhase.LOADING
+                    plot == null -> DetailPhase.ERROR
+                    else -> DetailPhase.CONTENT
+                },
+                transitionSpec = {
+                    fadeIn(motionTween(OsoMotion.ENTER, reducedMotion)) togetherWith
+                        fadeOut(motionTween(OsoMotion.STATE, reducedMotion)) using
+                        SizeTransform(clip = false)
+                },
+                label = "detail",
+            ) { phase ->
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    when (phase) {
+                        DetailPhase.LOADING -> {
+                            SkeletonCard(height = 200.dp)
+                            SkeletonCard(height = 280.dp)
+                        }
+                        DetailPhase.ERROR -> ErrorCard(
+                            state.errorMessage ?: stringResource(R.string.detail_load_error),
+                            onRetry = viewModel::load,
+                        )
+                        DetailPhase.CONTENT -> if (plot != null) {
+                            StaggeredEntrance(0) { StatusHero(plot) }
+                            StaggeredEntrance(1) { Facts(plot, state.readings.lastOrNull()) }
+                            StaggeredEntrance(2) { History(plot.crop, state.readings) }
+                        }
+                    }
                 }
             }
         }
@@ -193,7 +215,7 @@ fun PlotDetailScreen(
 private fun StatusHero(plot: Plot) {
     val threshold = plot.crop?.thresholdDsPerM
     val ratio = if (plot.lastEcDsPerM != null && threshold != null && threshold > 0) plot.lastEcDsPerM / threshold else null
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
             Text(
                 text = plot.salinityLevel.label(),
@@ -206,8 +228,8 @@ private fun StatusHero(plot: Plot) {
                     ratio != null && plot.crop != null -> stringResource(
                         R.string.detail_ratio,
                         (ratio * 100).toInt(),
-                        plot.crop.name.lowercase(ES),
-                        plot.crop.thresholdDsPerM.ds(1),
+                        plot.crop.name.lowercase(Locale.getDefault()),
+                        plot.crop.thresholdDsPerM.fmt(1),
                     )
                     plot.crop == null -> stringResource(R.string.detail_no_crop)
                     else -> stringResource(R.string.detail_no_readings)
@@ -219,14 +241,16 @@ private fun StatusHero(plot: Plot) {
             SalinityStrip(ratio = ratio, level = plot.salinityLevel)
             Spacer(Modifier.height(14.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
+                SalinityChip(plot.salinityLevel)
                 Spacer(Modifier.weight(1f))
                 plot.lastEcDsPerM?.let {
                     Text(
-                        stringResource(R.string.detail_reading, it.ds()),
+                        stringResource(R.string.detail_reading, it.dsPerM()),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                EceHelpButton()
             }
         }
     }
@@ -235,16 +259,16 @@ private fun StatusHero(plot: Plot) {
 @Composable
 private fun Facts(plot: Plot, latest: Reading?) {
     val facts = listOfNotNull(
-        latest?.let { stringResource(R.string.detail_moisture) to "${it.humidityPct.ds(0)} %" },
-        latest?.let { stringResource(R.string.detail_temperature) to "${it.temperatureC.ds(1)} °C" },
+        latest?.let { stringResource(R.string.detail_moisture) to "${it.humidityPct.fmt(0)} %" },
+        latest?.let { stringResource(R.string.detail_temperature) to "${it.temperatureC.fmt(1)} °C" },
         stringResource(R.string.detail_crop) to (plot.crop?.name ?: stringResource(R.string.plot_crop_none)),
-        stringResource(R.string.detail_area) to "${plot.areaHectares.ds(1)} ha",
+        stringResource(R.string.detail_area) to "${plot.areaHectares.fmt(1)} ha",
         stringResource(R.string.detail_sensor) to stringResource(
             if (plot.deviceOnline) R.string.detail_sensor_online else R.string.detail_sensor_offline,
         ),
         plot.lastReadingAt?.let { stringResource(R.string.detail_last_reading) to it },
     )
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
             facts.forEachIndexed { index, (label, value) ->
                 if (index > 0) HorizontalDivider(color = Line)
@@ -269,7 +293,7 @@ private fun Facts(plot: Plot, latest: Reading?) {
 
 @Composable
 private fun History(crop: Crop?, readings: List<Reading>) {
-    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
             Text(
                 stringResource(R.string.detail_history),
@@ -280,87 +304,27 @@ private fun History(crop: Crop?, readings: List<Reading>) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(R.string.detail_no_readings),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 return@Column
             }
-            if (crop != null) {
-                Text(
-                    stringResource(R.string.detail_history_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                stringResource(if (crop != null) R.string.detail_history_hint else R.string.detail_history_hint_no_crop),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(16.dp))
             EcChart(readings, crop?.thresholdDsPerM)
-            Spacer(Modifier.height(20.dp))
-            Text(stringResource(R.string.detail_recent), style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            readings.takeLast(5).asReversed().forEachIndexed { index, reading ->
-                if (index > 0) HorizontalDivider(color = Line)
-                Row(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
-                    Text(
-                        reading.timestamp,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                    )
-                    val over = crop != null && reading.ecDsPerM > crop.thresholdDsPerM
-                    Text(
-                        "${reading.ecDsPerM.ds()} dS/m",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (over) SalinityCritical else MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** Línea de la CE con el umbral punteado; el lector de pantalla recibe un resumen numérico. */
-@Composable
-private fun EcChart(readings: List<Reading>, threshold: Double?) {
-    val values = readings.map { it.ecDsPerM }
-    val top = maxOf(values.max(), threshold ?: 0.0) * 1.15
-    val description = stringResource(
-        R.string.detail_chart_description,
-        values.size,
-        values.min().ds(),
-        values.max().ds(),
-        values.last().ds(),
-    )
-    val lineColor = Emerald700
-    val thresholdColor = SalinityCritical
-    val gridColor = Line
-    Canvas(
-        Modifier
-            .fillMaxWidth()
-            .height(160.dp)
-            .semantics { contentDescription = description },
-    ) {
-        fun y(v: Double) = size.height - (v / top).toFloat() * size.height
-        drawLine(gridColor, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = 2f)
-        threshold?.let {
-            drawLine(
-                color = thresholdColor,
-                start = Offset(0f, y(it)),
-                end = Offset(size.width, y(it)),
-                strokeWidth = 3f,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f)),
+            Spacer(Modifier.height(12.dp))
+            // Resumen en texto (guía 5.1: cada gráfico tiene resumen y tabla alternativa).
+            Text(
+                chartSummary(readings, crop?.thresholdDsPerM),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
+            ReadingsTable(readings, crop?.thresholdDsPerM)
         }
-        if (values.size == 1) {
-            drawCircle(lineColor, radius = 8f, center = Offset(size.width / 2, y(values[0])))
-            return@Canvas
-        }
-        val stepX = size.width / (values.size - 1)
-        val points = values.mapIndexed { i, v -> Offset(stepX * i, y(v)) }
-        for (i in 0 until points.size - 1) {
-            drawLine(lineColor, points[i], points[i + 1], strokeWidth = 6f, cap = StrokeCap.Round)
-        }
-        drawCircle(lineColor, radius = 9f, center = points.last())
     }
 }
 
@@ -380,7 +344,7 @@ private fun ChangeCropDialog(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                "${crop.name} (${crop.thresholdDsPerM.ds(1)} dS/m)",
+                                "${crop.name} (${crop.thresholdDsPerM.dsPerM(1)})",
                                 fontWeight = if (crop.id == currentCropId) FontWeight.Bold else FontWeight.Normal,
                             )
                         },

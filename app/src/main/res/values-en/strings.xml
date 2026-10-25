@@ -1,0 +1,254 @@
+<resources>
+    <!-- English (en_US). Spanish is the default language, in values/strings.xml. -->
+
+    <!-- Login -->
+    <string name="login_subtitle">Monitor the health of your soil</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Sign in</string>
+    <string name="login_forgot">Forgot your password?</string>
+    <string name="login_register">Create an account</string>
+    <string name="login_error_empty">Enter your email and password</string>
+    <string name="login_error_credentials">Wrong email or password</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">My plots</string>
+    <string name="dashboard_empty">You have no plots yet</string>
+    <string name="dashboard_last_reading">Last reading: %1$s</string>
+
+    <!-- Salinity levels (style guide 5.1, same as the Web App) -->
+    <string name="salinity_normal">Normal</string>
+    <string name="salinity_watch">Watch</string>
+    <string name="salinity_high">High</string>
+    <string name="salinity_critical">Critical</string>
+    <string name="salinity_no_data">No reading</string>
+
+    <!-- Alerts -->
+    <string name="alerts_empty">You have no pending alerts</string>
+    <string name="alerts_acknowledge">Mark as handled</string>
+
+    <!-- Profile -->
+    <string name="profile_title">My profile</string>
+    <string name="profile_logout">Sign out</string>
+    <string name="profile_farms">My farms</string>
+    <string name="profile_crops">Crop catalog</string>
+    <string name="profile_role_producer">Farmer</string>
+    <string name="profile_role_advisor">Technical advisor</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_language_hint">The app opens in Spanish. You can switch to English at any time.</string>
+
+    <!-- Sign up -->
+    <string name="register_title">Create account</string>
+    <string name="register_role">Account type</string>
+    <string name="register_role_producer">Farmer</string>
+    <string name="register_role_advisor">Technical advisor</string>
+    <string name="register_name">Full name</string>
+    <string name="register_license">Professional license number</string>
+    <string name="register_button">Sign up</string>
+    <string name="register_success">Account created</string>
+    <string name="register_error_required">Fill in all the required fields</string>
+
+    <!-- Password recovery -->
+    <string name="forgot_title">Recover password</string>
+    <string name="forgot_instructions">Enter your email and we will send you a link to reset your password.</string>
+    <string name="forgot_button">Send link</string>
+    <string name="forgot_sent">If the email is registered, you will receive a reset link.</string>
+
+    <!-- Farms -->
+    <string name="farms_title">My farms</string>
+    <string name="farms_empty">You have no farms yet</string>
+    <string name="farms_new">New farm</string>
+    <string name="farm_name">Farm name</string>
+    <string name="farm_department">Department</string>
+    <string name="farm_province">Province</string>
+    <string name="farm_district">District</string>
+    <string name="farm_save">Save farm</string>
+
+    <!-- Plots -->
+    <string name="plot_new">New plot</string>
+    <string name="plot_name">Plot name</string>
+    <string name="plot_farm">Farm</string>
+    <string name="plot_area">Area (hectares)</string>
+    <string name="plot_latitude">Latitude (optional)</string>
+    <string name="plot_longitude">Longitude (optional)</string>
+    <string name="plot_crop">Crop (optional)</string>
+    <string name="plot_crop_none">No crop</string>
+    <string name="plot_save">Save plot</string>
+    <string name="plot_area_error">The area must be greater than zero</string>
+    <string name="plot_select_farm">Select a farm</string>
+    <string name="plot_need_farm">Register a farm first</string>
+    <string name="plot_deactivate">Deactivate plot</string>
+    <string name="plot_deactivate_confirm">Deactivate this plot? Its slot in your plan will be freed.</string>
+    <string name="plot_change_crop">Change crop</string>
+
+    <!-- Crop catalog -->
+    <string name="crops_title">Crop catalog</string>
+    <string name="crops_threshold">ECe threshold: %1$s dS/m</string>
+
+    <!-- Common -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_back">Back</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_retry">Try again</string>
+    <string name="common_loading">Loading</string>
+    <string name="common_expanded">Expanded</string>
+    <string name="common_collapsed">Collapsed</string>
+
+    <!-- ECe and dS/m in a few words (heuristic evaluation, problem 6) -->
+    <string name="ece_help_open">What ECe and dS/m mean</string>
+    <string name="ece_help_title">What does ECe measure?</string>
+    <string name="ece_help_what">ECe is the electrical conductivity of the soil, measured in its saturation extract: it tells how much salt the soil holds. Crop thresholds are set with this measure.</string>
+    <string name="ece_help_unit">It is expressed in dS/m (decisiemens per meter). More dS/m means more salt.</string>
+    <string name="ece_help_threshold">Each crop tolerates salt up to a threshold; table grape, for example, up to 1.5 dS/m. When the ECe goes above it, salt starts to lower the harvest.</string>
+    <string name="ece_help_close">Got it</string>
+
+    <!-- Devices -->
+    <string name="profile_devices">My devices</string>
+    <string name="devices_title">My devices</string>
+    <string name="devices_empty">You have no devices yet</string>
+    <string name="device_register">Register device</string>
+    <string name="device_code">Activation code</string>
+    <string name="device_plot">Plot</string>
+    <string name="device_unlinked">Not linked to a plot</string>
+    <string name="device_online">Online</string>
+    <string name="device_low_battery">Low battery</string>
+    <string name="device_offline">Offline</string>
+    <string name="device_last_seen">Last report: %1$s</string>
+    <string name="device_calibrate">Calibrate</string>
+    <string name="device_reference_value">Laboratory ECe (dS/m)</string>
+    <string name="device_sample_date">Sampling date (YYYY-MM-DD)</string>
+    <string name="device_last_calibration">Last calibration: %1$s · factor %2$s</string>
+
+    <!-- Notification preferences -->
+    <string name="profile_notifications">Notification preferences</string>
+    <string name="notif_settings_title">Notifications</string>
+    <string name="notif_min_severity">Minimum alert level</string>
+    <string name="notif_min_severity_hint">You will be notified from this level up.</string>
+    <string name="notif_channels">Delivery channels</string>
+    <string name="notif_channel_push">Push notification</string>
+    <string name="notif_channel_email">Email</string>
+
+    <!-- Subscription -->
+    <string name="profile_subscription">My subscription</string>
+    <string name="subscription_title">My subscription</string>
+    <string name="subscription_free">Plan with no expiry</string>
+    <string name="subscription_renews">Renews on %1$s</string>
+    <string name="subscription_plots_used">%1$d of %2$d plots used</string>
+    <string name="subscription_limit_reached">You reached the plot limit of your plan.</string>
+
+    <!-- Advisor panel -->
+    <string name="profile_advisor">Advisor panel</string>
+    <string name="advisor_title">Supervised plots</string>
+    <string name="advisor_sort">Sort by severity</string>
+    <string name="advisor_filter_producer">Farmer</string>
+    <string name="advisor_filter_crop">Crop</string>
+    <string name="advisor_filter_all">All</string>
+    <string name="advisor_compare_n">Compare (%1$d)</string>
+    <string name="advisor_compare_title">Plot comparison</string>
+    <string name="advisor_compare_subtitle">ECe (dS/m) of each plot in the period.</string>
+
+    <!-- Start -->
+    <string name="startup_tagline">Know the salinity of your soil</string>
+    <string name="startup_loading">Loading</string>
+    <string name="login_headline">Know your soil.
+Protect your harvest.</string>
+    <string name="login_hint">Sign in to your soil monitoring space.</string>
+    <string name="login_show_password">Show password</string>
+    <string name="login_hide_password">Hide password</string>
+    <string name="login_demo_note">Demo mode: sign in with any email and password. The data are examples.</string>
+    <string name="dashboard_hello">Hi, %1$s</string>
+    <string name="dashboard_hello_anonymous">Hi</string>
+    <string name="dashboard_refresh">Refresh</string>
+    <plurals name="dashboard_attention">
+        <item quantity="one">%1$d of your %2$d plots needs attention.</item>
+        <item quantity="other">%1$d of your %2$d plots need attention.</item>
+    </plurals>
+    <string name="dashboard_no_attention">No plot needs attention today.</string>
+    <plurals name="dashboard_watch">
+        <item quantity="one">%1$d plot is on watch: it is above the threshold, but still close.</item>
+        <item quantity="other">%1$d plots are on watch: they are above the threshold, but still close.</item>
+    </plurals>
+    <plurals name="dashboard_all_clear">
+        <item quantity="one">Your plot is below the crop threshold.</item>
+        <item quantity="other">Your %1$d plots are below the crop threshold.</item>
+    </plurals>
+    <string name="dashboard_stat_plots">Plots</string>
+    <string name="dashboard_stat_alerts">Active alerts</string>
+    <string name="dashboard_stat_devices">Sensors online</string>
+    <string name="dashboard_section">Salinity by plot</string>
+    <string name="dashboard_ratio">%1$d %% of threshold (%2$s dS/m)</string>
+    <string name="dashboard_legend">Each strip shows the current ECe against its crop threshold, marked by the vertical line.</string>
+    <string name="dashboard_device_offline">Sensor offline</string>
+    <string name="dashboard_no_readings">No readings yet</string>
+    <string name="dashboard_empty_hint">Register a plot and connect its device to see its salinity here.</string>
+    <string name="dashboard_plot_description">%1$s, %2$s, ECe %3$s</string>
+    <string name="salinity_strip_description">ECe at %1$d %% of the crop threshold</string>
+    <string name="salinity_strip_no_data">No ECe reading</string>
+    <string name="session_expired">Your session expired. Sign in again.</string>
+
+    <!-- Alerts and corrective actions -->
+    <string name="alerts_heading">Alerts</string>
+    <string name="alerts_summary_none">You are up to date with your alerts.</string>
+    <plurals name="alerts_summary">
+        <item quantity="one">%1$d alert needs your attention.</item>
+        <item quantity="other">%1$d alerts need your attention.</item>
+    </plurals>
+    <string name="alerts_empty_hint">We will let you know when the salinity of a plot goes above its crop threshold.</string>
+    <string name="alerts_acknowledged">Handled</string>
+    <string name="alerts_record_action">Record action</string>
+    <string name="alerts_message">ECe %1$s, %2$d %% of the crop threshold (%3$s).</string>
+    <string name="alerts_acknowledged_notice">Alert marked as handled.</string>
+    <string name="action_sheet_title">What did you do in %1$s?</string>
+    <string name="action_sheet_hint">Recording the action resolves the alert.</string>
+    <string name="action_notes">Notes (optional)</string>
+    <string name="action_save">Save action</string>
+    <string name="action_saved">Action recorded. The alert is resolved.</string>
+    <string name="action_leaching">Salt leaching</string>
+    <string name="action_irrigation_adjustment">Irrigation adjustment</string>
+    <string name="action_drainage_improvement">Drainage improvement</string>
+    <string name="action_soil_amendment">Soil amendment</string>
+    <string name="action_crop_rotation">Crop rotation</string>
+    <string name="notif_keep_one_channel">Keep at least one channel on to receive alerts.</string>
+    <string name="notif_saved">Preferences saved.</string>
+
+    <!-- Plot detail -->
+    <string name="detail_more">More options</string>
+    <string name="detail_ratio">%1$d %% of the %2$s threshold (%3$s dS/m)</string>
+    <string name="detail_no_crop">Assign a crop to compare the salinity with its threshold.</string>
+    <string name="detail_no_readings">No readings yet. Connect your device to see the salinity of this plot.</string>
+    <string name="detail_reading">Current ECe: %1$s</string>
+    <string name="detail_moisture">Moisture</string>
+    <string name="detail_temperature">Temperature</string>
+    <string name="detail_crop">Crop</string>
+    <string name="detail_last_reading">Last reading</string>
+    <string name="detail_area">Area</string>
+    <string name="detail_sensor">Sensor</string>
+    <string name="detail_sensor_online">Online</string>
+    <string name="detail_sensor_offline">Offline</string>
+    <string name="detail_history">Conductivity over time</string>
+    <string name="detail_history_hint">The green line is the measured ECe; the dashed red line, the crop threshold. Colored backgrounds mark each level.</string>
+    <string name="detail_history_hint_no_crop">The green line is the measured ECe. Assign a crop to see its threshold.</string>
+    <string name="detail_load_error">The plot could not be loaded.</string>
+
+    <!-- ECe chart: labels, summary and table (problem 9) -->
+    <string name="chart_threshold_label">Threshold %1$s dS/m</string>
+    <plurals name="chart_summary">
+        <item quantity="one">%1$d reading from %2$s to %3$s, between %4$s and %5$s dS/m. The latest is %6$s.</item>
+        <item quantity="other">%1$d readings from %2$s to %3$s, between %4$s and %5$s dS/m. The latest is %6$s.</item>
+    </plurals>
+    <plurals name="chart_summary_same_day">
+        <item quantity="one">%1$d reading on %2$s, between %3$s and %4$s dS/m. The latest is %5$s.</item>
+        <item quantity="other">%1$d readings on %2$s, between %3$s and %4$s dS/m. The latest is %5$s.</item>
+    </plurals>
+    <string name="chart_summary_over">It is above the crop threshold (%1$s).</string>
+    <string name="chart_summary_under">It is below the crop threshold (%1$s).</string>
+    <string name="chart_table_show">Show readings table</string>
+    <string name="chart_table_hide">Hide readings table</string>
+    <string name="chart_col_reading">ECe and date</string>
+    <string name="chart_col_level">Level</string>
+</resources>

@@ -48,7 +48,7 @@ class PlotDetailViewModel(
             val crops = (cropsResult as? DataResult.Success)?.data ?: emptyList()
             if (plot == null) {
                 _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "No se pudo cargar la parcela")
+                    it.copy(isLoading = false, errorMessage = (plotResult as? DataResult.Error)?.message)
                 }
             } else {
                 _uiState.update {

@@ -59,16 +59,17 @@ fun salinityLevel(ecDsPerM: Double?, thresholdDsPerM: Double?): SalinityLevel {
     val ratio = ecDsPerM / thresholdDsPerM
     return when {
         ratio >= 1.5 -> SalinityLevel.CRITICAL
-        ratio >= 1.2 -> SalinityLevel.WARNING
+        ratio >= 1.2 -> SalinityLevel.HIGH
         ratio > 1.0 -> SalinityLevel.WATCH
         else -> SalinityLevel.NORMAL
     }
 }
 
+/** WATCH → En vigilancia, WARNING → Alto, CRITICAL → Muy alto (guía de estilo, sección 5.1). */
 fun alertSeverity(apiSeverity: String): AlertSeverity = when (apiSeverity) {
     "CRITICAL" -> AlertSeverity.CRITICAL
     "WARNING" -> AlertSeverity.HIGH
-    else -> AlertSeverity.MEDIUM
+    else -> AlertSeverity.WATCH
 }
 
 /** Preferencias del Backend (severidad mínima y canal) en la escala de la app. */
@@ -83,7 +84,7 @@ fun NotificationPreferences.toSetDto(): SetNotificationPreferenceDto = SetNotifi
     minimumSeverity = when (minSeverity) {
         AlertSeverity.CRITICAL -> "CRITICAL"
         AlertSeverity.HIGH -> "WARNING"
-        else -> "WATCH"
+        AlertSeverity.WATCH -> "WATCH"
     },
     channel = when {
         pushEnabled && emailEnabled -> "BOTH"
@@ -109,23 +110,45 @@ fun CropDto.toCrop(): Crop = Crop(
 fun SoilReadingDto.toReading(): Reading = Reading(
     id = id.toString(),
     timestamp = displayDateTime(capturedAt) ?: capturedAt,
+    capturedAt = capturedAt,
     ecDsPerM = compensatedConductivityDsM,
     humidityPct = moisturePercentage,
     temperatureC = temperatureCelsius,
 )
 
-private val MONTHS = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic")
+private val MONTHS_ES = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic")
+private val MONTHS_EN = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+/** Abreviaturas de mes en el idioma de la app (Locale por defecto, que fija LocaleStore). */
+fun shortMonths(locale: Locale = Locale.getDefault()): List<String> =
+    if (locale.language == "en") MONTHS_EN else MONTHS_ES
 private val LOCAL_DATE_TIME = Regex("^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}).*")
 private val ISO_DATE = Regex("\\d{4}-\\d{2}-\\d{2}")
 
 /**
- * "2026-09-30T08:00:00" → "30 set, 08:00". Sin java.time, que exige API 26 y la app
- * admite desde API 24; deja el texto como está si no tiene ese formato.
+ * "2026-09-30T08:00:00" → "30 set, 08:00" ("Sep 30, 08:00" en inglés). Sin java.time, que exige
+ * API 26 y la app admite desde API 24; deja el texto como está si no tiene ese formato.
  */
-fun displayDateTime(isoLocalDateTime: String?): String? = isoLocalDateTime?.let { text ->
-    val match = LOCAL_DATE_TIME.matchEntire(text) ?: return@let text
-    val (_, month, day, hour, minute) = match.destructured
-    "${day.toInt()} ${MONTHS[month.toInt() - 1]}, $hour:$minute"
+fun displayDateTime(isoLocalDateTime: String?, locale: Locale = Locale.getDefault()): String? =
+    isoLocalDateTime?.let { text ->
+        val match = LOCAL_DATE_TIME.matchEntire(text) ?: return@let text
+        val (_, month, day, hour, minute) = match.destructured
+        "${shortDate(month.toInt(), day.toInt(), locale)}, $hour:$minute"
+    }
+
+/** "2026-09-30T08:00:00" → "30 set" ("Sep 30"), para el eje de tiempo de los gráficos. */
+fun displayShortDate(isoLocalDateTime: String?, locale: Locale = Locale.getDefault()): String? =
+    isoLocalDateTime?.let { LOCAL_DATE_TIME.matchEntire(it) }?.destructured?.let { (_, month, day) ->
+        shortDate(month.toInt(), day.toInt(), locale)
+    }
+
+/** "2026-09-30T08:05:00" → "08:05", para el eje de tiempo cuando todas las lecturas son del mismo día. */
+fun displayTime(isoLocalDateTime: String?): String? =
+    isoLocalDateTime?.let { LOCAL_DATE_TIME.matchEntire(it) }?.destructured?.let { (_, _, _, hour, minute) -> "$hour:$minute" }
+
+private fun shortDate(month: Int, day: Int, locale: Locale): String {
+    val name = shortMonths(locale)[month - 1]
+    return if (locale.language == "en") "$name $day" else "$day $name"
 }
 
 /** La fecha si ya es YYYY-MM-DD; si no, la de hoy. */

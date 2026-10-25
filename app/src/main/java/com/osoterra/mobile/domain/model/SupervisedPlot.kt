@@ -12,7 +12,7 @@ data class SupervisedPlot(
 /** Orden de criticidad para ordenar de más crítico a menos (US41). */
 fun SalinityLevel.criticalityRank(): Int = when (this) {
     SalinityLevel.CRITICAL -> 4
-    SalinityLevel.WARNING -> 3
+    SalinityLevel.HIGH -> 3
     SalinityLevel.WATCH -> 2
     SalinityLevel.NORMAL -> 1
     SalinityLevel.NO_DATA -> 0

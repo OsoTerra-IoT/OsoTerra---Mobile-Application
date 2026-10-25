@@ -156,10 +156,11 @@ fun CreatePlotScreen(
                         onSelected = { id -> viewModel.onCropSelected(id.ifBlank { null }) },
                     )
 
-                    if (state.errorMessage != null) {
+                    val error = state.errorRes?.let { stringResource(it) } ?: state.errorMessage
+                    if (error != null) {
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            state.errorMessage!!,
+                            error,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
                         )

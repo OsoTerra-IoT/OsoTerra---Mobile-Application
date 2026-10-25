@@ -25,8 +25,9 @@ class NotificationPreferencesStore(
 
     override suspend fun getPreferences(): DataResult<NotificationPreferences> {
         val prefs = context.prefsDataStore.data.first()
+        // Versiones anteriores guardaban LOW o MEDIUM; las dos equivalen a «En vigilancia».
         val severity = runCatching { AlertSeverity.valueOf(prefs[Keys.MIN_SEVERITY] ?: "") }
-            .getOrDefault(AlertSeverity.MEDIUM)
+            .getOrDefault(AlertSeverity.WATCH)
         return DataResult.Success(
             NotificationPreferences(
                 minSeverity = severity,
