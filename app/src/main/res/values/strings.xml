@@ -272,7 +272,7 @@ Protege tu cosecha.</string>
     <string name="demo_mode_restart">Pulsa el mismo número para reiniciar el escenario.</string>
     <string name="demo_mode_exit">Salir del modo de prueba</string>
     <string name="demo_logo_long_press">activar el modo de prueba</string>
-    <string name="demo_chip">Datos de prueba · Escenario %1$d</string>
+    <string name="demo_chip">Escenario %1$d</string>
     <string name="demo_chip_none">Datos de prueba</string>
     <string name="demo_chip_action">Cambiar el escenario de prueba</string>
     <string name="demo_sheet_title">Datos de prueba</string>
@@ -299,4 +299,15 @@ Protege tu cosecha.</string>
     <string name="advisory_request_decline">Rechazar</string>
     <string name="advisory_request_accepted">Aceptaste la solicitud. %1$s ya puede ver tus parcelas.</string>
     <string name="advisory_request_declined">Rechazaste la solicitud de %1$s.</string>
+
+    <!-- Interfaz compacta: números, íconos y gráficos en lugar de frases -->
+    <string name="ratio_short">%1$d %% del umbral</string>
+    <string name="ratio_threshold_short">%1$d %% del umbral · %2$s dS/m</string>
+    <string name="trend_up">Tendencia de las últimas %1$d lecturas: sube de %2$s a %3$s dS/m.</string>
+    <string name="trend_down">Tendencia de las últimas %1$d lecturas: baja de %2$s a %3$s dS/m.</string>
+    <string name="trend_flat">Tendencia de las últimas %1$d lecturas: estable entre %2$s y %3$s dS/m.</string>
+    <plurals name="level_count">
+        <item quantity="one">%2$s: %1$d parcela</item>
+        <item quantity="other">%2$s: %1$d parcelas</item>
+    </plurals>
 </resources>

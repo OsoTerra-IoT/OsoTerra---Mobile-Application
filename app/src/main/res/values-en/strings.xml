@@ -259,7 +259,7 @@ Protect your harvest.</string>
     <string name="demo_mode_restart">Tap the same number to restart the scenario.</string>
     <string name="demo_mode_exit">Leave test mode</string>
     <string name="demo_logo_long_press">turn on test mode</string>
-    <string name="demo_chip">Test data · Scenario %1$d</string>
+    <string name="demo_chip">Scenario %1$d</string>
     <string name="demo_chip_none">Test data</string>
     <string name="demo_chip_action">Change the test scenario</string>
     <string name="demo_sheet_title">Test data</string>
@@ -286,4 +286,15 @@ Protect your harvest.</string>
     <string name="advisory_request_decline">Decline</string>
     <string name="advisory_request_accepted">You accepted the request. %1$s can now see your plots.</string>
     <string name="advisory_request_declined">You declined the request from %1$s.</string>
+
+    <!-- Compact interface: numbers, icons and charts instead of sentences -->
+    <string name="ratio_short">%1$d %% of threshold</string>
+    <string name="ratio_threshold_short">%1$d %% of threshold · %2$s dS/m</string>
+    <string name="trend_up">Trend of the last %1$d readings: rising from %2$s to %3$s dS/m.</string>
+    <string name="trend_down">Trend of the last %1$d readings: falling from %2$s to %3$s dS/m.</string>
+    <string name="trend_flat">Trend of the last %1$d readings: steady between %2$s and %3$s dS/m.</string>
+    <plurals name="level_count">
+        <item quantity="one">%2$s: %1$d plot</item>
+        <item quantity="other">%2$s: %1$d plots</item>
+    </plurals>
 </resources>
