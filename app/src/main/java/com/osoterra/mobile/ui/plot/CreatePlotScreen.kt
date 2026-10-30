@@ -1,5 +1,8 @@
 package com.osoterra.mobile.ui.plot
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.WindowInsets
+import com.osoterra.mobile.ui.common.SerenaTopBar
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,20 +64,9 @@ fun CreatePlotScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.plot_new), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
+            SerenaTopBar(title = stringResource(R.string.plot_new), onBack = onBack)
         },
     ) { padding ->
         Box(
@@ -173,7 +165,7 @@ fun CreatePlotScreen(
                         enabled = !state.isSaving && state.name.isNotBlank(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .heightIn(min = 56.dp),
                     ) {
                         if (state.isSaving) {
                             CircularProgressIndicator(

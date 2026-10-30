@@ -1,5 +1,11 @@
 package com.osoterra.mobile.ui.subscription
 
+import com.osoterra.mobile.ui.theme.SurfaceGreen
+import com.osoterra.mobile.ui.theme.OliveLine
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.WindowInsets
+import com.osoterra.mobile.ui.common.SerenaTopBar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,20 +53,9 @@ fun SubscriptionScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.subscription_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
+            SerenaTopBar(title = stringResource(R.string.subscription_title), onBack = onBack)
         },
     ) { padding ->
         Box(
@@ -86,8 +81,10 @@ private fun SubscriptionContent(sub: Subscription) {
     Column(Modifier.padding(20.dp)) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfaceGreen),
+            shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, OliveLine),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
             Column(Modifier.padding(20.dp)) {
                 Text(

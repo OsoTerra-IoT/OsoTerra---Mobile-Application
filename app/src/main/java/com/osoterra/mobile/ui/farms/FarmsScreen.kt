@@ -1,5 +1,12 @@
 package com.osoterra.mobile.ui.farms
 
+import com.osoterra.mobile.ui.theme.White
+import com.osoterra.mobile.ui.theme.OliveLine
+import com.osoterra.mobile.ui.theme.Emerald700
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.WindowInsets
+import com.osoterra.mobile.ui.common.SerenaTopBar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,24 +62,16 @@ fun FarmsScreen(
     var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.farms_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
+            SerenaTopBar(title = stringResource(R.string.farms_title), onBack = onBack)
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showDialog = true },
+                shape = RoundedCornerShape(50),
+                containerColor = Emerald700,
+                contentColor = White,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.farms_new)) },
             )
@@ -91,7 +90,7 @@ fun FarmsScreen(
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                 )
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.farms, key = { it.id }) { farm -> FarmCard(farm) }
@@ -117,7 +116,9 @@ private fun FarmCard(farm: Farm) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, OliveLine),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(farm.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

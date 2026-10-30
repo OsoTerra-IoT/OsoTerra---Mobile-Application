@@ -1,5 +1,6 @@
 package com.osoterra.mobile.ui.advisor
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,19 @@ import com.osoterra.mobile.R
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.SupervisedPlot
 import com.osoterra.mobile.ui.common.SalinityChip
+import com.osoterra.mobile.ui.common.SerenaTopBar
+import com.osoterra.mobile.ui.common.StaggeredEntrance
+import com.osoterra.mobile.ui.common.fmt
+import com.osoterra.mobile.ui.theme.Emerald700
+import com.osoterra.mobile.ui.theme.OliveLine
+import com.osoterra.mobile.ui.theme.SageInk
+import com.osoterra.mobile.ui.theme.White
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.semantics.Role
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,38 +77,29 @@ fun AdvisorDashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.advisor_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
+            SerenaTopBar(
+                title = stringResource(R.string.advisor_title),
+                onBack = onBack,
                 actions = {
                     IconButton(onClick = { viewModel.toggleSort() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Sort,
                             contentDescription = stringResource(R.string.advisor_sort),
-                            tint = if (state.sortByCriticality) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                            },
+                            tint = if (state.sortByCriticality) Emerald700 else SageInk,
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
             )
         },
         floatingActionButton = {
             if (state.canCompare) {
                 ExtendedFloatingActionButton(
                     onClick = { onCompare(state.selectedIds.toList()) },
+                    shape = RoundedCornerShape(50),
+                    containerColor = Emerald700,
+                    contentColor = White,
                     text = { Text(stringResource(R.string.advisor_compare_n, state.selectedIds.size)) },
                     icon = { Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = null) },
                 )
@@ -113,7 +118,7 @@ fun AdvisorDashboardScreen(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
                     ) {
                         FilterDropdown(
                             label = stringResource(R.string.advisor_filter_producer),
@@ -133,15 +138,17 @@ fun AdvisorDashboardScreen(
                     }
 
                     LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 96.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        items(state.visiblePlots, key = { it.id }) { plot ->
+                        itemsIndexed(state.visiblePlots, key = { _, it -> it.id }) { index, plot ->
+                            StaggeredEntrance(index, Modifier.animateItem()) {
                             SupervisedPlotCard(
                                 plot = plot,
                                 selected = plot.id in state.selectedIds,
                                 onToggle = { viewModel.toggleSelection(plot.id) },
                             )
+                            }
                         }
                     }
                 }
@@ -152,27 +159,36 @@ fun AdvisorDashboardScreen(
 
 @Composable
 private fun SupervisedPlotCard(plot: SupervisedPlot, selected: Boolean, onToggle: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = White,
+        border = BorderStroke(1.dp, if (selected) Emerald700 else OliveLine),
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = selected, role = Role.Checkbox, onValueChange = { onToggle() }),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 12.dp),
+                .padding(start = 8.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Checkbox(checked = selected, onCheckedChange = { onToggle() })
+            Checkbox(checked = selected, onCheckedChange = null, modifier = Modifier.padding(horizontal = 12.dp))
             Column(Modifier.weight(1f)) {
-                Text(plot.plotName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(plot.plotName, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
                     "${plot.producerName} · ${plot.cropName ?: stringResource(R.string.plot_crop_none)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SageInk,
                 )
+                SalinityChip(level = plot.salinityLevel, compact = true, modifier = Modifier.padding(top = 8.dp))
             }
-            SalinityChip(level = plot.salinityLevel)
+            Text(
+                plot.lastEcDsPerM?.let { "${it.fmt(2)}\u00A0dS/m" } ?: "—",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = 8.dp),
+            )
         }
     }
 }

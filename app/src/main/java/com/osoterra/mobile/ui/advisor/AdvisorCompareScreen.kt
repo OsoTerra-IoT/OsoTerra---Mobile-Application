@@ -1,5 +1,7 @@
 package com.osoterra.mobile.ui.advisor
 
+import androidx.compose.foundation.layout.WindowInsets
+import com.osoterra.mobile.ui.common.SerenaTopBar
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -58,20 +60,9 @@ fun AdvisorCompareScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.advisor_compare_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
+            SerenaTopBar(title = stringResource(R.string.advisor_compare_title), onBack = onBack)
         },
     ) { padding ->
         Box(

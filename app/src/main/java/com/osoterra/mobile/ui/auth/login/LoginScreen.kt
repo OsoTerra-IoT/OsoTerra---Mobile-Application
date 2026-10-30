@@ -92,6 +92,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.ui.common.rememberReducedMotion
+import com.osoterra.mobile.ui.common.LightStatusBarIcons
+import com.osoterra.mobile.ui.common.StatusBarScrim
 import com.osoterra.mobile.ui.demo.DemoLoginPanel
 import kotlinx.coroutines.launch
 import com.osoterra.mobile.ui.theme.Emerald100
@@ -130,12 +132,13 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         entrance.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
     }
-    LightStatusIcons()
+    LightStatusBarIcons()
 
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Emerald800)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .imePadding(),
     ) {
@@ -148,7 +151,7 @@ fun LoginScreen(
                     alpha = entrance.value
                     translationY = (1f - entrance.value) * 120.dp.toPx()
                 },
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+            shape = RoundedCornerShape(0.dp),
             color = MaterialTheme.colorScheme.background,
         ) {
             Column(
@@ -188,8 +191,8 @@ fun LoginScreen(
                     onClick = onNavigateRegister,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
+                        .heightIn(min = 56.dp),
+                    shape = RoundedCornerShape(50),
                 ) {
                     Text(stringResource(R.string.login_register), style = MaterialTheme.typography.labelLarge)
                 }
@@ -231,6 +234,8 @@ fun LoginScreen(
                 }
             }
         }
+    }
+    StatusBarScrim()
     }
 }
 
@@ -314,8 +319,8 @@ private fun LoginForm(
         enabled = !state.isLoading,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
+            .heightIn(min = 56.dp),
+        shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(containerColor = Emerald700),
     ) {
         if (state.isLoading) {
@@ -345,12 +350,14 @@ private fun Hero(reducedMotion: Boolean, onLogoLongPress: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+            .background(Emerald800)
             .statusBarsPadding()
-            .height(320.dp),
+            .heightIn(min = 280.dp),
     ) {
         SoilLayers(modifier = Modifier.align(Alignment.BottomCenter))
 
-        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
+        Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 144.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val longPressLabel = stringResource(R.string.demo_logo_long_press)
                 Image(
@@ -428,24 +435,12 @@ private fun SoilLayers(modifier: Modifier = Modifier) {
     }
 }
 
-/** Íconos claros en la barra de estado mientras se ve el panel esmeralda. */
-@Composable
-private fun LightStatusIcons() {
-    val view = LocalView.current
-    DisposableEffect(view) {
-        val window = (view.context as Activity).window
-        val controller = WindowCompat.getInsetsController(window, view)
-        controller.isAppearanceLightStatusBars = false
-        onDispose { controller.isAppearanceLightStatusBars = true }
-    }
-}
-
 @Composable
 private fun DemoNote() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SurfaceGreen, RoundedCornerShape(16.dp))
+            .background(SurfaceGreen, RoundedCornerShape(20.dp))
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
