@@ -34,7 +34,9 @@ import com.osoterra.mobile.domain.model.Subscription
 import com.osoterra.mobile.domain.model.SupervisedPlot
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
+import com.osoterra.mobile.domain.model.AdvisoryRequest
 import com.osoterra.mobile.domain.repository.AdvisorRepository
+import com.osoterra.mobile.domain.repository.AdvisoryLinkRepository
 import com.osoterra.mobile.domain.repository.AlertRepository
 import com.osoterra.mobile.domain.repository.AuthRepository
 import com.osoterra.mobile.domain.repository.DeviceRepository
@@ -414,4 +416,31 @@ class AdvisorRepositoryRemote(
 
     override suspend fun getSeries(plotId: String): DataResult<List<Reading>> =
         apiCall { reader.readings(plotId.toLong()).map { it.toReading() } }
+}
+
+/** Solicitudes de asesoría pendientes dirigidas a la persona que inició sesión. */
+class AdvisoryLinkRepositoryRemote(
+    private val api: OsoTerraApi,
+    private val sessionStore: SessionStore,
+) : AdvisoryLinkRepository {
+
+    override suspend fun getPendingRequests(): DataResult<List<AdvisoryRequest>> = apiCall {
+        val me = sessionStore.readUser()?.id
+        api.myAdvisoryLinks()
+            .filter { it.status == "PENDING" && it.farmerId.toString() == me }
+            .map {
+                AdvisoryRequest(
+                    id = it.id.toString(),
+                    advisorName = it.advisorName.orEmpty(),
+                    advisorEmail = it.advisorEmail.orEmpty(),
+                    requestedAt = displayDateTime(it.requestedAt),
+                )
+            }
+    }
+
+    override suspend fun accept(requestId: String): DataResult<Unit> =
+        apiCall { api.acceptAdvisoryLink(requestId.toLong()); Unit }
+
+    override suspend fun decline(requestId: String): DataResult<Unit> =
+        apiCall { api.revokeAdvisoryLink(requestId.toLong()); Unit }
 }

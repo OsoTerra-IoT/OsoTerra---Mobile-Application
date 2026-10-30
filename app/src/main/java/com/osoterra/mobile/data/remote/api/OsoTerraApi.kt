@@ -1,6 +1,7 @@
 package com.osoterra.mobile.data.remote.api
 
 import com.osoterra.mobile.data.remote.dto.ActivationCodeDto
+import com.osoterra.mobile.data.remote.dto.AdvisoryLinkDto
 import com.osoterra.mobile.data.remote.dto.NotificationPreferenceDto
 import com.osoterra.mobile.data.remote.dto.RecordCorrectiveActionDto
 import com.osoterra.mobile.data.remote.dto.SetNotificationPreferenceDto
@@ -49,6 +50,15 @@ interface OsoTerraApi {
 
     @GET("users/me/linked-accounts")
     suspend fun linkedAccounts(): List<UserAccountDto>
+
+    @GET("advisory-links/mine")
+    suspend fun myAdvisoryLinks(): List<AdvisoryLinkDto>
+
+    @POST("advisory-links/{id}/acceptance")
+    suspend fun acceptAdvisoryLink(@Path("id") id: Long): AdvisoryLinkDto
+
+    @POST("advisory-links/{id}/revocation")
+    suspend fun revokeAdvisoryLink(@Path("id") id: Long): AdvisoryLinkDto
 
     // Subscription and Billing
     @GET("subscription-plans")

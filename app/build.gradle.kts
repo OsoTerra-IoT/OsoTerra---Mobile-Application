@@ -22,6 +22,12 @@ android {
         val useFakeApi = (project.findProperty("osoterra.fakeApi") as String?) ?: "false"
         buildConfigField("boolean", "USE_FAKE_API", useFakeApi)
 
+        // Modo de prueba (escenarios 1–6 en memoria, sin Backend) para las entrevistas de usabilidad.
+        // false (por defecto): se activa desde el enlace «Modo de prueba» del login.
+        // true: la app abre ya en modo de prueba. ./gradlew assembleDebug -Posoterra.demo=true
+        val demoMode = (project.findProperty("osoterra.demo") as String?) ?: "false"
+        buildConfigField("boolean", "DEMO_MODE", demoMode)
+
         // Base URL del RESTful API. Por defecto, el Backend desplegado en Railway.
         // Backend local desde el emulador: -Posoterra.apiUrl=http://10.0.2.2:8080/api/v1/
         val apiUrl = (project.findProperty("osoterra.apiUrl") as String?)

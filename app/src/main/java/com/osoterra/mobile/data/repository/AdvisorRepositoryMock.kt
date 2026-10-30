@@ -1,10 +1,12 @@
 package com.osoterra.mobile.data.repository
 
 import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.domain.model.AdvisoryRequest
 import com.osoterra.mobile.domain.model.Reading
 import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.domain.model.SupervisedPlot
 import com.osoterra.mobile.domain.repository.AdvisorRepository
+import com.osoterra.mobile.domain.repository.AdvisoryLinkRepository
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
@@ -40,4 +42,14 @@ class AdvisorRepositoryMock : AdvisorRepository {
         }
         return DataResult.Success(series)
     }
+}
+
+/** Con `USE_FAKE_API` no hay solicitudes de asesoría pendientes. */
+class AdvisoryLinkRepositoryMock : AdvisoryLinkRepository {
+    override suspend fun getPendingRequests(): DataResult<List<AdvisoryRequest>> =
+        DataResult.Success(emptyList())
+
+    override suspend fun accept(requestId: String): DataResult<Unit> = DataResult.Success(Unit)
+
+    override suspend fun decline(requestId: String): DataResult<Unit> = DataResult.Success(Unit)
 }
