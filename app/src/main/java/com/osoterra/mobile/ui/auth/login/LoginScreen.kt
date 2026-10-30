@@ -15,6 +15,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
@@ -60,7 +62,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -88,6 +92,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.ui.common.rememberReducedMotion
+import com.osoterra.mobile.ui.demo.DemoLoginPanel
+import kotlinx.coroutines.launch
 import com.osoterra.mobile.ui.theme.Emerald100
 import com.osoterra.mobile.ui.theme.Emerald600
 import com.osoterra.mobile.ui.theme.Emerald700
@@ -102,9 +108,18 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateRegister: () -> Unit,
     onNavigateForgot: () -> Unit,
+    onDemoStarted: () -> Unit,
 ) {
     val container = rememberAppContainer()
-    val viewModel: LoginViewModel = viewModel(factory = LoginViewModel.provideFactory(container))
+    val demoMode by container.demoMode.collectAsState()
+    val demoScenario by container.demoScenario.collectAsState()
+    var demoBusy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    // La clave cambia con el modo: el ViewModel toma los repositorios del modo activo.
+    val viewModel: LoginViewModel = viewModel(
+        key = if (demoMode) "login-demo" else "login",
+        factory = LoginViewModel.provideFactory(container),
+    )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val reducedMotion = rememberReducedMotion()
     val entrance = remember { Animatable(if (reducedMotion) 1f else 0f) }
@@ -124,7 +139,7 @@ fun LoginScreen(
             .verticalScroll(rememberScrollState())
             .imePadding(),
     ) {
-        Hero(reducedMotion = reducedMotion)
+        Hero(reducedMotion = reducedMotion, onLogoLongPress = container::enableDemoMode)
 
         Surface(
             modifier = Modifier
@@ -179,9 +194,40 @@ fun LoginScreen(
                     Text(stringResource(R.string.login_register), style = MaterialTheme.typography.labelLarge)
                 }
 
-                if (container.usesFakeApi) {
+                if (container.usesFakeApi && !demoMode) {
                     Spacer(Modifier.height(20.dp))
                     DemoNote()
+                }
+
+                // Modo de prueba para las entrevistas de usabilidad: escenarios sin Backend.
+                Spacer(Modifier.height(16.dp))
+                if (demoMode) {
+                    DemoLoginPanel(
+                        selected = demoScenario,
+                        busy = demoBusy,
+                        onSelect = { scenario ->
+                            demoBusy = true
+                            scope.launch {
+                                container.startDemoScenario(scenario)
+                                demoBusy = false
+                                onDemoStarted()
+                            }
+                        },
+                        onExit = { scope.launch { container.disableDemoMode() } },
+                    )
+                } else {
+                    TextButton(
+                        onClick = container::enableDemoMode,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .heightIn(min = 48.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.demo_mode_link),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -286,7 +332,7 @@ private fun LoginForm(
 
 /** Titular de la marca y una sonda de suelo que marca su lectura con un leve vaivén. */
 @Composable
-private fun Hero(reducedMotion: Boolean) {
+private fun Hero(reducedMotion: Boolean, onLogoLongPress: () -> Unit) {
     val transition = rememberInfiniteTransition(label = "probe")
     val bob by transition.animateFloat(
         initialValue = 0f,
@@ -306,12 +352,21 @@ private fun Hero(reducedMotion: Boolean) {
 
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val longPressLabel = stringResource(R.string.demo_logo_long_press)
                 Image(
                     painter = painterResource(R.drawable.osoterra_logo),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        // Atajo discreto para quien conduce la entrevista: mantener pulsado activa el modo de prueba.
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = onLogoLongPress,
+                            onLongClickLabel = longPressLabel,
+                            indication = null,
+                            interactionSource = null,
+                        ),
                 )
                 Spacer(Modifier.size(10.dp))
                 Text("OsoSense", style = MaterialTheme.typography.titleLarge, color = White)

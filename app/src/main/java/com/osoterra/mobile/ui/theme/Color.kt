@@ -12,6 +12,8 @@ val Emerald700 = Color(0xFF047857)
 val Emerald800 = Color(0xFF065F46)
 val Emerald900 = Color(0xFF064E3B)
 val SurfaceGreen = Color(0xFFF0FDF4)
+/** Borde de las superficies verdes destacadas (guía de estilo: #BBF7D0). */
+val SurfaceGreenBorder = Color(0xFFBBF7D0)
 
 /** Tinta «suelo» para texto principal. */
 val Ink = Color(0xFF16211C)

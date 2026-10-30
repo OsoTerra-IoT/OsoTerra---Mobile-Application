@@ -19,7 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -40,6 +43,8 @@ import com.osoterra.mobile.ui.auth.login.LoginScreen
 import com.osoterra.mobile.ui.auth.register.RegisterScreen
 import com.osoterra.mobile.ui.crops.CropCatalogScreen
 import com.osoterra.mobile.ui.dashboard.DashboardScreen
+import com.osoterra.mobile.ui.demo.DemoBar
+import com.osoterra.mobile.ui.demo.DemoScenarioSheet
 import com.osoterra.mobile.ui.devices.DevicesScreen
 import com.osoterra.mobile.ui.farms.FarmsScreen
 import com.osoterra.mobile.ui.plot.CreatePlotScreen
@@ -48,6 +53,7 @@ import com.osoterra.mobile.ui.profile.ProfileScreen
 import com.osoterra.mobile.ui.settings.NotificationSettingsScreen
 import com.osoterra.mobile.ui.startup.StartupScreen
 import com.osoterra.mobile.ui.subscription.SubscriptionScreen
+import kotlinx.coroutines.launch
 
 private data class BottomDestination(
     val route: String,
@@ -60,6 +66,8 @@ private val bottomDestinations = listOf(
     BottomDestination(Routes.ALERTS, R.string.nav_alerts, Icons.Filled.Notifications),
     BottomDestination(Routes.PROFILE, R.string.nav_profile, Icons.Filled.Person),
 )
+
+private val signedOutRoutes = setOf(Routes.STARTUP, Routes.LOGIN, Routes.REGISTER, Routes.FORGOT)
 
 @Composable
 fun OsoTerraRoot() {
@@ -92,9 +100,54 @@ fun OsoTerraRoot() {
     // El login dibuja su propio panel detrás de la barra de estado.
     val fullBleed = currentRoute == Routes.LOGIN
 
+    // Modo de prueba: chip «Datos de prueba» arriba en las pantallas con sesión.
+    val demoMode by container.demoMode.collectAsState()
+    val demoScenario by container.demoScenario.collectAsState()
+    val showDemoBar = demoMode && currentRoute != null && currentRoute !in signedOutRoutes
+    var demoSheetOpen by remember { mutableStateOf(false) }
+    var demoBusy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    /**
+     * Entra al inicio con el escenario recién cargado. Antes se descartan las pestañas
+     * guardadas (y sus ViewModel), para que ninguna muestre datos del escenario anterior.
+     */
+    fun openDemoHome() {
+        bottomDestinations.forEach { navController.clearBackStack(it.route) }
+        navController.navigate(Routes.DASHBOARD) { popUpTo(0) { inclusive = true } }
+    }
+
+    if (demoSheetOpen && showDemoBar) {
+        DemoScenarioSheet(
+            selected = demoScenario,
+            busy = demoBusy,
+            onSelect = { scenario ->
+                demoBusy = true
+                scope.launch {
+                    container.startDemoScenario(scenario)
+                    demoBusy = false
+                    demoSheetOpen = false
+                    openDemoHome()
+                }
+            },
+            onExit = {
+                scope.launch {
+                    container.disableDemoMode()
+                    demoSheetOpen = false
+                    bottomDestinations.forEach { navController.clearBackStack(it.route) }
+                    navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+                }
+            },
+            onDismiss = { demoSheetOpen = false },
+        )
+    }
+
     Scaffold(
         contentWindowInsets = if (fullBleed) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            if (showDemoBar) DemoBar(selected = demoScenario, onOpen = { demoSheetOpen = true })
+        },
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -141,6 +194,7 @@ fun OsoTerraRoot() {
                     onLoginSuccess = { goToDashboardClearing(Routes.LOGIN) },
                     onNavigateRegister = { navController.navigate(Routes.REGISTER) },
                     onNavigateForgot = { navController.navigate(Routes.FORGOT) },
+                    onDemoStarted = ::openDemoHome,
                 )
             }
             composable(Routes.REGISTER) {

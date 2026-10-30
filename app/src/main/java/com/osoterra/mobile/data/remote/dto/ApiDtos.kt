@@ -201,3 +201,17 @@ data class SetNotificationPreferenceDto(
     val channel: String,
     val pushDeviceToken: String? = null,
 )
+
+@Serializable
+data class AdvisoryLinkDto(
+    val id: Long,
+    val advisorId: Long,
+    val farmerId: Long,
+    val status: String,
+    val requestedAt: String? = null,
+    val respondedAt: String? = null,
+    val advisorName: String? = null,
+    val advisorEmail: String? = null,
+    val farmerName: String? = null,
+    val farmerEmail: String? = null,
+)
