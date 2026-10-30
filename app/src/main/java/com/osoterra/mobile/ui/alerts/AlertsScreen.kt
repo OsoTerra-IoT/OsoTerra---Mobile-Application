@@ -44,6 +44,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextOverflow
+import com.osoterra.mobile.ui.common.SalinityStrip
+import com.osoterra.mobile.ui.common.asLevel
+import com.osoterra.mobile.ui.common.fmt
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -215,9 +222,13 @@ private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: (
                 .drawBehind { drawRect(barColor, size = Size(6.dp.toPx(), size.height)) }
                 .padding(start = 26.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // FlowRow: con fuente grande, «Atendida» baja de línea en vez de montarse sobre la píldora.
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
                 SeverityChip(alert.severity)
-                Spacer(Modifier.weight(1f))
                 AnimatedVisibility(
                     visible = alert.acknowledged,
                     enter = fadeIn(motionTween(OsoMotion.STATE, reducedMotion)),
@@ -240,11 +251,28 @@ private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: (
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Text(alert.plotName, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(Modifier.height(4.dp))
-            Text(alert.displayMessage(), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(Modifier.height(4.dp))
-            Text(alert.createdAt, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                alert.plotName,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            AlertReading(alert)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Icon(
+                    Icons.Outlined.Schedule,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    alert.createdAt,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
             Spacer(Modifier.height(16.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
@@ -261,6 +289,48 @@ private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: (
                 }
             }
         }
+    }
+}
+
+/**
+ * La lectura de la alerta en números y una franja: la ECe en grande, el % del umbral y la
+ * franja del nivel. El lector de pantalla oye la frase completa de siempre.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AlertReading(alert: Alert) {
+    val observed = alert.observedDsPerM
+    val threshold = alert.thresholdDsPerM
+    val message = alert.displayMessage()
+    if (observed == null || threshold == null || threshold <= 0.0) {
+        if (message.isNotBlank()) {
+            Text(message, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
+        }
+        return
+    }
+    val ratio = observed / threshold
+    Column(
+        Modifier
+            .padding(top = 8.dp)
+            .clearAndSetSemantics { contentDescription = message },
+    ) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = observed.fmt(2) + " " + stringResource(R.string.unit_ds_m),
+                style = MaterialTheme.typography.headlineSmall,
+                color = alert.severity.color(),
+            )
+            Text(
+                text = stringResource(R.string.ratio_short, (ratio * 100).roundToInt()),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        SalinityStrip(ratio = ratio, level = alert.severity.asLevel())
     }
 }
 

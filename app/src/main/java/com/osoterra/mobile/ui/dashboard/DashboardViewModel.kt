@@ -33,6 +33,8 @@ data class DashboardUiState(
     /** Respuesta recién dada a una solicitud, para confirmarla en pantalla. */
     val requestOutcome: RequestOutcome? = null,
     val respondingTo: String? = null,
+    /** ECe de las últimas lecturas de cada parcela, para su mini gráfico de tendencia. */
+    val trends: Map<String, List<Double>> = emptyMap(),
 ) {
     /**
      * Parcelas que necesitan atención: solo las de nivel Alto o Muy alto, la misma regla que
@@ -101,20 +103,44 @@ class DashboardViewModel(
             }
             val activeAlerts = (alerts.await() as? DataResult.Success)?.data?.count { !it.acknowledged } ?: 0
             when (val result = plots.await()) {
-                is DataResult.Success -> _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isRefreshing = false,
-                        firstName = firstName,
-                        plots = result.data,
-                        activeAlerts = activeAlerts,
-                        requests = requests,
-                    )
+                is DataResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            firstName = firstName,
+                            plots = result.data,
+                            activeAlerts = activeAlerts,
+                            requests = requests,
+                        )
+                    }
+                    loadTrends(result.data)
                 }
                 is DataResult.Error -> _uiState.update {
                     it.copy(isLoading = false, isRefreshing = false, firstName = firstName, errorMessage = result.message)
                 }
             }
+        }
+    }
+
+    /**
+     * Tendencias en segundo plano: la lista aparece primero y cada mini gráfico se dibuja cuando
+     * llegan sus lecturas. Si una parcela falla, simplemente queda sin gráfico.
+     */
+    private fun loadTrends(plots: List<Plot>) {
+        viewModelScope.launch {
+            val trends = plots
+                .filter { it.lastEcDsPerM != null }
+                .map { plot -> plot.id to async { plotRepository.getReadings(plot.id) } }
+                .mapNotNull { (id, call) ->
+                    (call.await() as? DataResult.Success)?.data
+                        ?.takeLast(TREND_POINTS)
+                        ?.map { it.ecDsPerM }
+                        ?.takeIf { it.size >= 2 }
+                        ?.let { id to it }
+                }
+                .toMap()
+            _uiState.update { it.copy(trends = trends) }
         }
     }
 
@@ -142,6 +168,9 @@ class DashboardViewModel(
     }
 
     companion object {
+        /** Puntos del mini gráfico: un mes de lecturas diarias. */
+        const val TREND_POINTS = 30
+
         fun provideFactory(container: AppContainer) = viewModelFactory {
             initializer {
                 DashboardViewModel(

@@ -36,6 +36,24 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.outlined.Grass
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.material.icons.outlined.SensorsOff
+import androidx.compose.material.icons.outlined.SquareFoot
+import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import com.osoterra.mobile.ui.common.EceSparkline
+import com.osoterra.mobile.ui.common.FlowTiles
+import com.osoterra.mobile.ui.common.IconBadge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -97,7 +115,7 @@ fun PlotDetailScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text(state.plot?.name.orEmpty(), maxLines = 1) },
+                title = { Text(state.plot?.name.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
@@ -165,7 +183,7 @@ fun PlotDetailScreen(
                             onRetry = viewModel::load,
                         )
                         DetailPhase.CONTENT -> if (plot != null) {
-                            StaggeredEntrance(0) { StatusHero(plot) }
+                            StaggeredEntrance(0) { StatusHero(plot, state.readings.takeLast(30).map { it.ecDsPerM }) }
                             StaggeredEntrance(1) { Facts(plot, state.readings.lastOrNull()) }
                             StaggeredEntrance(2) { History(plot.crop, state.readings) }
                         }
@@ -211,80 +229,110 @@ fun PlotDetailScreen(
  * Lo primero que responde la pantalla es «¿cómo está mi suelo?» en palabras: el nivel y
  * cuánto del umbral del cultivo usa. El valor en dS/m queda como dato de apoyo.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StatusHero(plot: Plot) {
+private fun StatusHero(plot: Plot, trend: List<Double>) {
     val threshold = plot.crop?.thresholdDsPerM
     val ratio = if (plot.lastEcDsPerM != null && threshold != null && threshold > 0) plot.lastEcDsPerM / threshold else null
     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(20.dp)) {
-            Text(
-                text = plot.salinityLevel.label(),
-                style = MaterialTheme.typography.headlineLarge,
-                color = plot.salinityLevel.color(),
-                modifier = Modifier.semantics { heading() },
-            )
-            Text(
-                text = when {
-                    ratio != null && plot.crop != null -> stringResource(
-                        R.string.detail_ratio,
-                        (ratio * 100).toInt(),
-                        plot.crop.name.lowercase(Locale.getDefault()),
-                        plot.crop.thresholdDsPerM.fmt(1),
-                    )
-                    plot.crop == null -> stringResource(R.string.detail_no_crop)
-                    else -> stringResource(R.string.detail_no_readings)
-                },
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(Modifier.height(16.dp))
-            SalinityStrip(ratio = ratio, level = plot.salinityLevel)
-            Spacer(Modifier.height(14.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SalinityChip(plot.salinityLevel)
-                Spacer(Modifier.weight(1f))
-                plot.lastEcDsPerM?.let {
+        Column(Modifier.fillMaxWidth().padding(20.dp).animateContentSize()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                SalinityChip(plot.salinityLevel, modifier = Modifier.semantics { heading() })
+                if (ratio != null && threshold != null) {
                     Text(
-                        stringResource(R.string.detail_reading, it.dsPerM()),
+                        stringResource(R.string.ratio_threshold_short, (ratio * 100).toInt(), threshold.fmt(1)),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Text(
+                    text = buildAnnotatedString {
+                        append(plot.lastEcDsPerM?.fmt(2) ?: "—")
+                        withStyle(
+                            SpanStyle(
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                        ) { append(" " + stringResource(R.string.unit_ds_m)) }
+                    },
+                    style = MaterialTheme.typography.displaySmall,
+                    color = plot.salinityLevel.color(),
+                    modifier = Modifier.weight(1f),
+                )
                 EceHelpButton()
             }
+            when {
+                plot.crop == null -> HintLine(stringResource(R.string.detail_no_crop))
+                plot.lastEcDsPerM == null -> HintLine(stringResource(R.string.detail_no_readings))
+            }
+            if (trend.size >= 2) {
+                Spacer(Modifier.height(12.dp))
+                EceSparkline(values = trend, threshold = threshold, height = 56.dp)
+            }
+            Spacer(Modifier.height(14.dp))
+            SalinityStrip(ratio = ratio, level = plot.salinityLevel)
         }
     }
 }
 
 @Composable
+private fun HintLine(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+}
+
+private data class Fact(val icon: ImageVector, val label: String, val value: String)
+
+/** Datos de la parcela en mosaicos con ícono (dos por fila; uno por fila con fuente grande). */
+@Composable
 private fun Facts(plot: Plot, latest: Reading?) {
     val facts = listOfNotNull(
-        latest?.let { stringResource(R.string.detail_moisture) to "${it.humidityPct.fmt(0)} %" },
-        latest?.let { stringResource(R.string.detail_temperature) to "${it.temperatureC.fmt(1)} °C" },
-        stringResource(R.string.detail_crop) to (plot.crop?.name ?: stringResource(R.string.plot_crop_none)),
-        stringResource(R.string.detail_area) to "${plot.areaHectares.fmt(1)} ha",
-        stringResource(R.string.detail_sensor) to stringResource(
-            if (plot.deviceOnline) R.string.detail_sensor_online else R.string.detail_sensor_offline,
+        latest?.let { Fact(Icons.Outlined.WaterDrop, stringResource(R.string.detail_moisture), "${it.humidityPct.fmt(0)} %") },
+        latest?.let { Fact(Icons.Outlined.Thermostat, stringResource(R.string.detail_temperature), "${it.temperatureC.fmt(1)} °C") },
+        Fact(Icons.Outlined.Grass, stringResource(R.string.detail_crop), plot.crop?.name ?: stringResource(R.string.plot_crop_none)),
+        Fact(Icons.Outlined.SquareFoot, stringResource(R.string.detail_area), "${plot.areaHectares.fmt(1)} ha"),
+        Fact(
+            if (plot.deviceOnline) Icons.Outlined.Sensors else Icons.Outlined.SensorsOff,
+            stringResource(R.string.detail_sensor),
+            stringResource(if (plot.deviceOnline) R.string.detail_sensor_online else R.string.detail_sensor_offline),
         ),
-        plot.lastReadingAt?.let { stringResource(R.string.detail_last_reading) to it },
+        plot.lastReadingAt?.let { Fact(Icons.Outlined.Schedule, stringResource(R.string.detail_last_reading), it) },
     )
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
-            facts.forEachIndexed { index, (label, value) ->
-                if (index > 0) HorizontalDivider(color = Line)
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+    FlowTiles { tileModifier ->
+        facts.forEach { fact ->
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = tileModifier.semantics(mergeDescendants = true) {},
+            ) {
+                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconBadge(fact.icon)
+                    Column(Modifier.padding(start = 10.dp)) {
+                        Text(
+                            fact.value,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            fact.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
         }
@@ -295,11 +343,18 @@ private fun Facts(plot: Plot, latest: Reading?) {
 private fun History(crop: Crop?, readings: List<Reading>) {
     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
-            Text(
-                stringResource(R.string.detail_history),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.detail_history),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { heading() },
+                )
+                EceHelpButton(
+                    extra = stringResource(if (crop != null) R.string.detail_history_hint else R.string.detail_history_hint_no_crop),
+                )
+            }
             if (readings.isEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -309,12 +364,7 @@ private fun History(crop: Crop?, readings: List<Reading>) {
                 )
                 return@Column
             }
-            Text(
-                stringResource(if (crop != null) R.string.detail_history_hint else R.string.detail_history_hint_no_crop),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
             EcChart(readings, crop?.thresholdDsPerM)
             Spacer(Modifier.height(12.dp))
             // Resumen en texto (guía 5.1: cada gráfico tiene resumen y tabla alternativa).
