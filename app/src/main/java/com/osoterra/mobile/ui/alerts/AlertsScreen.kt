@@ -1,5 +1,7 @@
 package com.osoterra.mobile.ui.alerts
 
+import com.osoterra.mobile.ui.common.StatusBarScrim
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
@@ -75,7 +77,17 @@ import com.osoterra.mobile.domain.model.Alert
 import com.osoterra.mobile.domain.model.CorrectiveActionType
 import com.osoterra.mobile.ui.common.EmptyCard
 import com.osoterra.mobile.ui.common.ErrorCard
-import com.osoterra.mobile.ui.common.ScreenHeader
+import com.osoterra.mobile.ui.common.ArrowButton
+import com.osoterra.mobile.ui.common.BandHeader
+import com.osoterra.mobile.ui.common.BigReading
+import com.osoterra.mobile.ui.common.SectionLabel
+import com.osoterra.mobile.ui.common.SerenaCard
+import com.osoterra.mobile.ui.common.SerenaGutter
+import com.osoterra.mobile.ui.theme.SageInk
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import com.osoterra.mobile.ui.common.SeverityChip
 import com.osoterra.mobile.ui.common.OsoMotion
 import com.osoterra.mobile.ui.common.SkeletonCard
@@ -90,13 +102,18 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlertsScreen() {
+fun AlertsScreen(onPendingCount: (Int) -> Unit = {}) {
     val container = rememberAppContainer()
     val viewModel: AlertsViewModel = viewModel(factory = AlertsViewModel.provideFactory(container))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val savedMessage = stringResource(R.string.action_saved)
     val acknowledgedMessage = stringResource(R.string.alerts_acknowledged_notice)
+
+    // La insignia de la pestaña se actualiza al marcar o resolver una alerta.
+    LaunchedEffect(state.alerts, state.isLoading) {
+        if (!state.isLoading) onPendingCount(state.alerts.count { !it.acknowledged })
+    }
 
     LaunchedEffect(state.notice) {
         val message = when (state.notice) {
@@ -109,6 +126,7 @@ fun AlertsScreen() {
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
@@ -121,30 +139,32 @@ fun AlertsScreen() {
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 item(key = "header") {
-                    val pending = state.alerts.count { !it.acknowledged }
-                    ScreenHeader(
+                    val pendingCount = state.alerts.count { !it.acknowledged }
+                    BandHeader(
                         eyebrow = stringResource(R.string.alerts_heading),
                         title = when {
                             // Mientras carga no se afirma nada: el titular llega con los datos.
                             state.isLoading -> ""
-                            pending == 0 -> stringResource(R.string.alerts_summary_none)
-                            else -> pluralStringResource(R.plurals.alerts_summary, pending, pending)
+                            pendingCount == 0 -> stringResource(R.string.alerts_summary_none)
+                            else -> pluralStringResource(R.plurals.alerts_summary, pendingCount, pendingCount)
                         },
                     )
                 }
+                val pending = state.alerts.filter { !it.acknowledged }
+                val done = state.alerts.filter { it.acknowledged }
                 when {
-                    state.isLoading -> items(3, key = { "skeleton-$it" }) {
-                        Box(Modifier.animateItem()) { SkeletonCard(height = 200.dp) }
+                    state.isLoading -> items(2, key = { "skeleton-$it" }) {
+                        Gutter(Modifier.animateItem()) { SkeletonCard(height = 220.dp) }
                     }
                     state.errorMessage != null && state.alerts.isEmpty() -> item(key = "error") {
-                        Box(Modifier.animateItem()) { ErrorCard(state.errorMessage!!, onRetry = viewModel::loadAlerts) }
+                        Gutter(Modifier.animateItem()) { ErrorCard(state.errorMessage!!, onRetry = viewModel::loadAlerts) }
                     }
                     state.alerts.isEmpty() -> item(key = "empty") {
-                        Box(Modifier.animateItem()) {
+                        Gutter(Modifier.animateItem()) {
                             EmptyCard(
                                 title = stringResource(R.string.alerts_empty),
                                 hint = stringResource(R.string.alerts_empty_hint),
@@ -152,18 +172,44 @@ fun AlertsScreen() {
                             )
                         }
                     }
-                    else -> itemsIndexed(state.alerts, key = { _, alert -> alert.id }) { index, alert ->
-                        // animateItem: al marcarla como atendida, la tarjeta se reordena con movimiento.
-                        StaggeredEntrance(index, Modifier.animateItem()) {
-                            AlertCard(
-                                alert = alert,
-                                onAcknowledge = { viewModel.acknowledge(alert.id) },
-                                onRecordAction = { viewModel.openAction(alert) },
-                            )
+                    else -> {
+                        if (pending.isNotEmpty() && done.isNotEmpty()) {
+                            item(key = "label-pending") {
+                                Gutter(Modifier.animateItem()) { SectionLabel(stringResource(R.string.alerts_pending_section)) }
+                            }
+                        }
+                        itemsIndexed(pending, key = { _, alert -> alert.id }) { index, alert ->
+                            // animateItem: al marcarla como atendida, la tarjeta baja con movimiento.
+                            Gutter(Modifier.animateItem()) {
+                                StaggeredEntrance(index) {
+                                    AlertCard(
+                                        alert = alert,
+                                        onAcknowledge = { viewModel.acknowledge(alert.id) },
+                                        onRecordAction = { viewModel.openAction(alert) },
+                                    )
+                                }
+                            }
+                        }
+                        if (done.isNotEmpty()) {
+                            item(key = "label-done") {
+                                Gutter(Modifier.animateItem()) { SectionLabel(stringResource(R.string.alerts_done_section)) }
+                            }
+                        }
+                        itemsIndexed(done, key = { _, alert -> alert.id }) { index, alert ->
+                            Gutter(Modifier.animateItem()) {
+                                StaggeredEntrance(pending.size + index) {
+                                    AlertCard(
+                                        alert = alert,
+                                        onAcknowledge = { viewModel.acknowledge(alert.id) },
+                                        onRecordAction = { viewModel.openAction(alert) },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
+            StatusBarScrim()
         }
     }
 
@@ -198,105 +244,96 @@ private fun CorrectiveActionType.label(): String = stringResource(
     },
 )
 
+@Composable
+private fun Gutter(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Box(modifier.padding(horizontal = SerenaGutter)) { content() }
+}
+
 /**
- * Tarjeta de alerta: barra lateral del color del nivel (guía 5.1), píldora con ícono y palabra,
- * y las dos acciones visibles. Al marcarla como atendida, la barra se apaga en 150 ms.
+ * Tarjeta de alerta serena: píldora del nivel, parcela, la ECe en grande con su % del umbral,
+ * la hora y las dos acciones visibles. Atendida, la tarjeta se aclara y queda abajo.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: () -> Unit) {
     val reducedMotion = rememberReducedMotion()
-    val barColor by animateColorAsState(
-        if (alert.acknowledged) Line else alert.severity.color(),
+    val alpha by animateFloatAsState(
+        if (alert.acknowledged) 0.8f else 1f,
         motionTween(OsoMotion.STATE, reducedMotion),
-        label = "alertBar",
+        label = "alertAlpha",
     )
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        // Barra lateral dibujada detrás del contenido, así ocupa toda la altura de la tarjeta.
-        Column(
-            Modifier
-                .drawBehind { drawRect(barColor, size = Size(6.dp.toPx(), size.height)) }
-                .padding(start = 26.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
+    SerenaCard(modifier = Modifier.graphicsLayer { this.alpha = alpha }) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            // FlowRow: con fuente grande, «Atendida» baja de línea en vez de montarse sobre la píldora.
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                itemVerticalAlignment = Alignment.CenterVertically,
+            SeverityChip(alert.severity)
+            AnimatedVisibility(
+                visible = alert.acknowledged,
+                enter = fadeIn(motionTween(OsoMotion.STATE, reducedMotion)),
+                exit = fadeOut(motionTween(OsoMotion.STATE, reducedMotion)),
             ) {
-                SeverityChip(alert.severity)
-                AnimatedVisibility(
-                    visible = alert.acknowledged,
-                    enter = fadeIn(motionTween(OsoMotion.STATE, reducedMotion)),
-                    exit = fadeOut(motionTween(OsoMotion.STATE, reducedMotion)),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Outlined.DoneAll,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.size(4.dp))
-                        Text(
-                            stringResource(R.string.alerts_acknowledged),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.DoneAll, contentDescription = null, tint = SageInk, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.size(4.dp))
+                    Text(stringResource(R.string.alerts_acknowledged), style = MaterialTheme.typography.labelMedium, color = SageInk)
                 }
             }
-            Spacer(Modifier.height(12.dp))
+        }
+        Text(
+            alert.plotName,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        AlertReading(alert)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+            Icon(Icons.Outlined.Schedule, contentDescription = null, tint = SageInk, modifier = Modifier.size(16.dp))
             Text(
-                alert.plotName,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+                alert.createdAt,
+                style = MaterialTheme.typography.bodySmall,
+                color = SageInk,
+                modifier = Modifier.padding(start = 4.dp),
             )
-            AlertReading(alert)
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                Icon(
-                    Icons.Outlined.Schedule,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp),
-                )
-                Text(
-                    alert.createdAt,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onRecordAction,
-                    shape = RoundedCornerShape(50),
-                    modifier = Modifier.heightIn(min = 48.dp),
-                ) { Text(stringResource(R.string.alerts_record_action)) }
-                if (!alert.acknowledged) {
-                    TextButton(onClick = onAcknowledge, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp), tint = Emerald700)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.alerts_acknowledge), color = Emerald700)
-                    }
-                }
+        }
+        if (alert.acknowledged) {
+            OutlinedButton(
+                onClick = onRecordAction,
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, Emerald700),
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.alerts_record_action), color = Emerald700) }
+        } else {
+            ArrowButton(
+                text = stringResource(R.string.alerts_record_action),
+                onClick = onRecordAction,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+            TextButton(
+                onClick = onAcknowledge,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+            ) {
+                Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp), tint = Emerald700)
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.alerts_acknowledge), color = Emerald700, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
 }
 
 /**
- * La lectura de la alerta en números y una franja: la ECe en grande, el % del umbral y la
- * franja del nivel. El lector de pantalla oye la frase completa de siempre.
+ * La lectura de la alerta en números: la ECe en grande y el % del umbral. El lector de
+ * pantalla oye la frase completa de siempre.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AlertReading(alert: Alert) {
     val observed = alert.observedDsPerM
@@ -304,33 +341,22 @@ private fun AlertReading(alert: Alert) {
     val message = alert.displayMessage()
     if (observed == null || threshold == null || threshold <= 0.0) {
         if (message.isNotBlank()) {
-            Text(message, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
+            Text(message, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
         }
         return
     }
     val ratio = observed / threshold
     Column(
         Modifier
-            .padding(top = 8.dp)
+            .padding(top = 4.dp)
             .clearAndSetSemantics { contentDescription = message },
     ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            itemVerticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = observed.fmt(2) + " " + stringResource(R.string.unit_ds_m),
-                style = MaterialTheme.typography.headlineSmall,
-                color = alert.severity.color(),
-            )
-            Text(
-                text = stringResource(R.string.ratio_short, (ratio * 100).roundToInt()),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        SalinityStrip(ratio = ratio, level = alert.severity.asLevel())
+        BigReading(observed)
+        Text(
+            text = stringResource(R.string.ratio_threshold_short, (ratio * 100).roundToInt(), threshold.fmt(1)),
+            style = MaterialTheme.typography.bodySmall,
+            color = SageInk,
+        )
     }
 }
 

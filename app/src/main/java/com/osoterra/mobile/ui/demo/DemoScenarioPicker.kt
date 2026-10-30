@@ -210,48 +210,6 @@ fun DemoLoginPanel(
     }
 }
 
-/** Franja superior con el chip «Datos de prueba» que abre la hoja de escenarios. */
-@Composable
-fun DemoBar(selected: DemoScenario?, onOpen: () -> Unit) {
-    Surface(color = SurfaceGreen) {
-        Column(Modifier.fillMaxWidth().statusBarsPadding()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                val actionLabel = stringResource(R.string.demo_chip_action)
-                Surface(
-                    onClick = onOpen,
-                    shape = RoundedCornerShape(50),
-                    color = Emerald100,
-                    contentColor = Emerald900,
-                    modifier = Modifier
-                        .heightIn(min = 48.dp)
-                        .semantics { contentDescription = actionLabel },
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Outlined.Science, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = selected?.let { stringResource(R.string.demo_chip, it.number) }
-                                ?: stringResource(R.string.demo_chip_none),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Icon(Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(20.dp))
-                    }
-                }
-            }
-            HorizontalDivider(color = Line)
-        }
-    }
-}
-
 /** Hoja con los 6 escenarios, accesible desde cualquier pantalla con sesión de prueba. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
