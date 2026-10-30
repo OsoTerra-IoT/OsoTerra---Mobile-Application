@@ -6,8 +6,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.osoterra.mobile.core.util.DataResult
 import com.osoterra.mobile.di.AppContainer
+import com.osoterra.mobile.domain.model.AdvisoryRequest
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.SalinityLevel
+import com.osoterra.mobile.domain.model.UserRole
+import com.osoterra.mobile.domain.repository.AdvisoryLinkRepository
 import com.osoterra.mobile.domain.repository.AlertRepository
 import com.osoterra.mobile.domain.repository.AuthRepository
 import com.osoterra.mobile.domain.repository.PlotRepository
@@ -25,6 +28,11 @@ data class DashboardUiState(
     val plots: List<Plot> = emptyList(),
     val activeAlerts: Int = 0,
     val errorMessage: String? = null,
+    /** Solicitudes de asesoría pendientes (solo para el productor). */
+    val requests: List<AdvisoryRequest> = emptyList(),
+    /** Respuesta recién dada a una solicitud, para confirmarla en pantalla. */
+    val requestOutcome: RequestOutcome? = null,
+    val respondingTo: String? = null,
 ) {
     /**
      * Parcelas que necesitan atención: solo las de nivel Alto o Muy alto, la misma regla que
@@ -48,6 +56,8 @@ data class DashboardUiState(
     }
 }
 
+data class RequestOutcome(val advisorName: String, val accepted: Boolean)
+
 private fun SalinityLevel.urgency(): Int = when (this) {
     SalinityLevel.CRITICAL -> 4
     SalinityLevel.HIGH -> 3
@@ -60,6 +70,7 @@ class DashboardViewModel(
     private val authRepository: AuthRepository,
     private val plotRepository: PlotRepository,
     private val alertRepository: AlertRepository,
+    private val advisoryLinkRepository: AdvisoryLinkRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -81,7 +92,13 @@ class DashboardViewModel(
             val user = async { authRepository.currentUser() }
             val plots = async { plotRepository.getPlots() }
             val alerts = async { alertRepository.getAlerts() }
-            val firstName = user.await()?.fullName?.trim()?.substringBefore(' ').orEmpty()
+            val currentUser = user.await()
+            val firstName = currentUser?.fullName?.trim()?.substringBefore(' ').orEmpty()
+            val requests = if (currentUser?.role == UserRole.PRODUCER) {
+                (advisoryLinkRepository.getPendingRequests() as? DataResult.Success)?.data.orEmpty()
+            } else {
+                emptyList()
+            }
             val activeAlerts = (alerts.await() as? DataResult.Success)?.data?.count { !it.acknowledged } ?: 0
             when (val result = plots.await()) {
                 is DataResult.Success -> _uiState.update {
@@ -91,6 +108,7 @@ class DashboardViewModel(
                         firstName = firstName,
                         plots = result.data,
                         activeAlerts = activeAlerts,
+                        requests = requests,
                     )
                 }
                 is DataResult.Error -> _uiState.update {
@@ -100,10 +118,38 @@ class DashboardViewModel(
         }
     }
 
+    fun acceptRequest(request: AdvisoryRequest) = respond(request, accepted = true)
+
+    fun declineRequest(request: AdvisoryRequest) = respond(request, accepted = false)
+
+    private fun respond(request: AdvisoryRequest, accepted: Boolean) {
+        if (_uiState.value.respondingTo != null) return
+        _uiState.update { it.copy(respondingTo = request.id) }
+        viewModelScope.launch {
+            val result = if (accepted) advisoryLinkRepository.accept(request.id)
+            else advisoryLinkRepository.decline(request.id)
+            _uiState.update { state ->
+                when (result) {
+                    is DataResult.Success -> state.copy(
+                        respondingTo = null,
+                        requests = state.requests.filterNot { it.id == request.id },
+                        requestOutcome = RequestOutcome(request.advisorName, accepted),
+                    )
+                    is DataResult.Error -> state.copy(respondingTo = null, errorMessage = result.message)
+                }
+            }
+        }
+    }
+
     companion object {
         fun provideFactory(container: AppContainer) = viewModelFactory {
             initializer {
-                DashboardViewModel(container.authRepository, container.plotRepository, container.alertRepository)
+                DashboardViewModel(
+                    container.authRepository,
+                    container.plotRepository,
+                    container.alertRepository,
+                    container.advisoryLinkRepository,
+                )
             }
         }
     }

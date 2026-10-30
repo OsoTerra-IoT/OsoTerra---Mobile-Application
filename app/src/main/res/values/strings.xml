@@ -264,4 +264,39 @@ Protege tu cosecha.</string>
     <string name="chart_table_hide">Ocultar tabla de lecturas</string>
     <string name="chart_col_reading">ECe y fecha</string>
     <string name="chart_col_level">Nivel</string>
+
+    <!-- Modo de prueba: escenarios para las entrevistas de usabilidad (sin Backend) -->
+    <string name="demo_mode_link">Modo de prueba</string>
+    <string name="demo_mode_title">Modo de prueba</string>
+    <string name="demo_mode_hint">Elige un escenario para entrar. Los datos son de ejemplo y no usan internet.</string>
+    <string name="demo_mode_restart">Pulsa el mismo número para reiniciar el escenario.</string>
+    <string name="demo_mode_exit">Salir del modo de prueba</string>
+    <string name="demo_logo_long_press">activar el modo de prueba</string>
+    <string name="demo_chip">Datos de prueba · Escenario %1$d</string>
+    <string name="demo_chip_none">Datos de prueba</string>
+    <string name="demo_chip_action">Cambiar el escenario de prueba</string>
+    <string name="demo_sheet_title">Datos de prueba</string>
+    <string name="demo_scenario_cd">Escenario %1$d: %2$s, %3$s</string>
+    <string name="demo_role_producer">productor</string>
+    <string name="demo_role_advisor">asesor</string>
+    <string name="demo_scenario_1_title">Sin parcelas</string>
+    <string name="demo_scenario_1_desc">Productor. Cuenta nueva sin parcelas. Código del dispositivo para vincular: OS-014.</string>
+    <string name="demo_scenario_2_title">Todo normal</string>
+    <string name="demo_scenario_2_desc">Productor. Dos parcelas de uva de mesa en nivel Normal.</string>
+    <string name="demo_scenario_3_title">Alerta muy alta</string>
+    <string name="demo_scenario_3_desc">Productor. Tres parcelas: Normal, En vigilancia y Muy alto (2.30 dS/m con umbral de 1.50). Una alerta sin atender.</string>
+    <string name="demo_scenario_4_title">Solicitud de asesor</string>
+    <string name="demo_scenario_4_desc">Productor. Lo del escenario 3 y una solicitud de asesoría pendiente de una ingeniera.</string>
+    <string name="demo_scenario_5_title">Asesor con clientes</string>
+    <string name="demo_scenario_5_desc">Asesor. Dos clientes con 30 días de lecturas; una parcela empeora.</string>
+    <string name="demo_scenario_6_title">Asesor con alertas</string>
+    <string name="demo_scenario_6_desc">Asesor. Lo del escenario 5 y alertas Alto y Muy alto sin atender.</string>
+
+    <!-- Solicitudes de asesoría (productor) -->
+    <string name="advisory_request_title">Solicitud de asesoría</string>
+    <string name="advisory_request_body">%1$s quiere ver tus parcelas y sus alertas para asesorarte.</string>
+    <string name="advisory_request_accept">Aceptar solicitud</string>
+    <string name="advisory_request_decline">Rechazar</string>
+    <string name="advisory_request_accepted">Aceptaste la solicitud. %1$s ya puede ver tus parcelas.</string>
+    <string name="advisory_request_declined">Rechazaste la solicitud de %1$s.</string>
 </resources>

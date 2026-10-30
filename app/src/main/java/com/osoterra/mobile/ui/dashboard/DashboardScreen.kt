@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +25,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Landscape
 import androidx.compose.material.icons.outlined.Refresh
@@ -32,6 +36,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
 import com.osoterra.mobile.di.rememberAppContainer
+import com.osoterra.mobile.domain.model.AdvisoryRequest
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.ui.common.EceHelpButton
@@ -73,6 +79,8 @@ import com.osoterra.mobile.ui.common.label
 import com.osoterra.mobile.ui.common.motionTween
 import com.osoterra.mobile.ui.common.rememberReducedMotion
 import com.osoterra.mobile.ui.theme.Emerald700
+import com.osoterra.mobile.ui.theme.SurfaceGreen
+import com.osoterra.mobile.ui.theme.SurfaceGreenBorder
 import com.osoterra.mobile.ui.theme.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,6 +119,23 @@ fun DashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item(key = "header") { Header(state, onRefresh = viewModel::refresh) }
+                state.requests.forEach { request ->
+                    item(key = "request-${request.id}") {
+                        Box(Modifier.animateItem()) {
+                            AdvisoryRequestCard(
+                                request = request,
+                                busy = state.respondingTo == request.id,
+                                onAccept = { viewModel.acceptRequest(request) },
+                                onDecline = { viewModel.declineRequest(request) },
+                            )
+                        }
+                    }
+                }
+                state.requestOutcome?.let { outcome ->
+                    item(key = "request-outcome") {
+                        Box(Modifier.animateItem()) { AdvisoryOutcomeCard(outcome) }
+                    }
+                }
                 when {
                     state.isLoading -> items(3, key = { "skeleton-$it" }) {
                         Box(Modifier.animateItem()) { SkeletonCard(height = 190.dp) }
@@ -362,3 +387,83 @@ private fun PlotRow(plot: Plot, index: Int, onClick: () -> Unit) {
         }
     }
 }
+
+/** Solicitud de un asesor para ver las parcelas: el productor la acepta o la rechaza. */
+@Composable
+private fun AdvisoryRequestCard(
+    request: AdvisoryRequest,
+    busy: Boolean,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = SurfaceGreen,
+        border = BorderStroke(1.dp, SurfaceGreenBorder),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.PersonAdd, contentDescription = null, tint = Emerald700)
+                Spacer(Modifier.size(10.dp))
+                Text(
+                    text = stringResource(R.string.advisory_request_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.semantics { heading() },
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.advisory_request_body, request.advisorName),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            val details = listOfNotNull(request.advisorEmail.takeIf { it.isNotBlank() }, request.requestedAt)
+            if (details.isNotEmpty()) {
+                Text(
+                    text = details.joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = onAccept,
+                    enabled = !busy,
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.advisory_request_accept), style = MaterialTheme.typography.labelLarge) }
+                OutlinedButton(
+                    onClick = onDecline,
+                    enabled = !busy,
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.advisory_request_decline), style = MaterialTheme.typography.labelLarge) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdvisoryOutcomeCard(outcome: RequestOutcome) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceGreen, RoundedCornerShape(20.dp))
+            .padding(16.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = Emerald700)
+        Spacer(Modifier.size(10.dp))
+        Text(
+            text = stringResource(
+                if (outcome.accepted) R.string.advisory_request_accepted else R.string.advisory_request_declined,
+                outcome.advisorName,
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+

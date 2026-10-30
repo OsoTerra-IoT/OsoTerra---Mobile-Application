@@ -251,4 +251,39 @@ Protect your harvest.</string>
     <string name="chart_table_hide">Hide readings table</string>
     <string name="chart_col_reading">ECe and date</string>
     <string name="chart_col_level">Level</string>
+
+    <!-- Test mode: scenarios for usability interviews (no Backend) -->
+    <string name="demo_mode_link">Test mode</string>
+    <string name="demo_mode_title">Test mode</string>
+    <string name="demo_mode_hint">Choose a scenario to sign in. The data is sample data and needs no internet.</string>
+    <string name="demo_mode_restart">Tap the same number to restart the scenario.</string>
+    <string name="demo_mode_exit">Leave test mode</string>
+    <string name="demo_logo_long_press">turn on test mode</string>
+    <string name="demo_chip">Test data · Scenario %1$d</string>
+    <string name="demo_chip_none">Test data</string>
+    <string name="demo_chip_action">Change the test scenario</string>
+    <string name="demo_sheet_title">Test data</string>
+    <string name="demo_scenario_cd">Scenario %1$d: %2$s, %3$s</string>
+    <string name="demo_role_producer">farmer</string>
+    <string name="demo_role_advisor">advisor</string>
+    <string name="demo_scenario_1_title">No plots</string>
+    <string name="demo_scenario_1_desc">Farmer. New account with no plots. Device code to link: OS-014.</string>
+    <string name="demo_scenario_2_title">All normal</string>
+    <string name="demo_scenario_2_desc">Farmer. Two table grape plots at Normal level.</string>
+    <string name="demo_scenario_3_title">Critical alert</string>
+    <string name="demo_scenario_3_desc">Farmer. Three plots: Normal, Watch and Critical (2.30 dS/m with a 1.50 threshold). One alert not yet handled.</string>
+    <string name="demo_scenario_4_title">Advisor request</string>
+    <string name="demo_scenario_4_desc">Farmer. Scenario 3 plus a pending advisory request from an agronomist.</string>
+    <string name="demo_scenario_5_title">Advisor with clients</string>
+    <string name="demo_scenario_5_desc">Advisor. Two clients with 30 days of readings; one plot is getting worse.</string>
+    <string name="demo_scenario_6_title">Advisor with alerts</string>
+    <string name="demo_scenario_6_desc">Advisor. Scenario 5 plus High and Critical alerts not yet handled.</string>
+
+    <!-- Advisory requests (farmer) -->
+    <string name="advisory_request_title">Advisory request</string>
+    <string name="advisory_request_body">%1$s wants to see your plots and their alerts to advise you.</string>
+    <string name="advisory_request_accept">Accept request</string>
+    <string name="advisory_request_decline">Decline</string>
+    <string name="advisory_request_accepted">You accepted the request. %1$s can now see your plots.</string>
+    <string name="advisory_request_declined">You declined the request from %1$s.</string>
 </resources>
