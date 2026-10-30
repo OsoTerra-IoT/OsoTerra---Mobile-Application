@@ -130,35 +130,3 @@ fun ErrorCard(message: String, onRetry: () -> Unit) {
         }
     }
 }
-
-/** Encabezado de pantalla de nivel superior: rótulo en esmeralda y titular grande. */
-@Composable
-fun ScreenHeader(eyebrow: String, title: String, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth()) {
-        Text(eyebrow, style = MaterialTheme.typography.titleMedium, color = Emerald700)
-        val reducedMotion = rememberReducedMotion()
-        // El titular cambia con un fundido y la altura se ajusta sin saltos.
-        Crossfade(
-            targetState = title,
-            animationSpec = motionTween(OsoMotion.ENTER, reducedMotion),
-            modifier = Modifier.animateContentSize(motionTween(OsoMotion.STATE, reducedMotion)),
-            label = "headline",
-        ) { text ->
-            if (text.isNotBlank()) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .padding(top = 4.dp, bottom = 8.dp)
-                        .semantics {
-                            heading()
-                            liveRegion = LiveRegionMode.Polite
-                        },
-                )
-            } else {
-                Spacer(Modifier.height(8.dp))
-            }
-        }
-    }
-}

@@ -17,10 +17,10 @@ val SurfaceGreenBorder = Color(0xFFBBF7D0)
 
 /** Tinta «suelo» para texto principal. */
 val Ink = Color(0xFF16211C)
-/** Fondo «sal», gris verdoso frío. */
-val Salt = Color(0xFFF5F7F6)
-val Line = Color(0xFFE3E8E5)
-val Track = Color(0xFFEAEFEC)
+/** Fondo «sal»: ahora el mismo marfil del tema. */
+val Salt = Color(0xFFFAF9F6)
+val Line = Color(0xFFE4E6D9)
+val Track = Color(0xFFEFEEE7)
 val Neutral600 = Color(0xFF4B5563)
 val White = Color(0xFFFFFFFF)
 
@@ -35,3 +35,28 @@ val SalinityCritical = Color(0xFFA12426)
 val SalinityCriticalContainer = Color(0xFFFFEAEB)
 val SalinityNoData = Color(0xFF3E5150)
 val SalinityNoDataContainer = Color(0xFFE6EBEA)
+
+// Tema «Tierra Serena» (variante 6 del rediseño): fondo marfil, banda bosque y salvia suave.
+/** Fondo marfil de todas las pantallas. */
+val Ivory = Color(0xFFFAF9F6)
+/** Banda superior y cabeceras serenas (blanco encima: 7,6:1). */
+val Forest = Emerald800
+/** Salvia: solo trazos y decoración, nunca texto. */
+val Sage = Color(0xFF7D8471)
+/** Salvia oscura para texto secundario (6,9:1 sobre marfil, 7,3:1 sobre blanco). */
+val SageInk = Color(0xFF535A47)
+/** Divisores y bordes de mosaicos. */
+val OliveLine = Color(0xFFE4E6D9)
+/** Texto sobre la banda que no es titular (13:1 sobre la banda). */
+val BandMuted = Emerald100
+/** Íconos de acento sobre la banda. */
+val BandAccent = Color(0xFFA7F3D0)
+/** Texto principal (neutral 900 de la guía). */
+val TextStrong = Color(0xFF111827)
+
+// Segmentos del medidor sobre la banda: tonos claros del nivel (el texto dice la cantidad).
+val MeterCritical = Color(0xFFFCA5A5)
+val MeterHigh = Color(0xFFFDBA74)
+val MeterWatch = Color(0xFFFDE68A)
+val MeterNormal = Color(0xFF86EFAC)
+val MeterNoData = Color(0xFFCBD5D1)

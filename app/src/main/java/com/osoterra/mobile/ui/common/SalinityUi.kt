@@ -114,19 +114,29 @@ fun SeverityChip(severity: AlertSeverity, modifier: Modifier = Modifier) {
  * (por ejemplo, al actualizar), el color pasa de uno a otro en 150 ms.
  */
 @Composable
-fun SalinityChip(level: SalinityLevel, modifier: Modifier = Modifier) {
+fun SalinityChip(level: SalinityLevel, modifier: Modifier = Modifier, compact: Boolean = false) {
     val reducedMotion = rememberReducedMotion()
     val container by animateColorAsState(level.containerColor(), motionTween(OsoMotion.STATE, reducedMotion), label = "pill")
     val content by animateColorAsState(level.color(), motionTween(OsoMotion.STATE, reducedMotion), label = "pillText")
     Row(
         modifier = modifier
             .background(container, RoundedCornerShape(50))
-            .padding(start = 10.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+            .padding(
+                start = if (compact) 10.dp else 12.dp,
+                end = if (compact) 12.dp else 14.dp,
+                top = if (compact) 4.dp else 6.dp,
+                bottom = if (compact) 4.dp else 6.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(level.icon(), contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
-        Text(text = level.label(), color = content, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+        Icon(level.icon(), contentDescription = null, tint = content, modifier = Modifier.size(if (compact) 16.dp else 18.dp))
+        Text(
+            text = level.label(),
+            color = content,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+        )
     }
 }
 
