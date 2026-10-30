@@ -1,5 +1,7 @@
 package com.osoterra.mobile.ui.profile
 
+import com.osoterra.mobile.ui.common.StatusBarScrim
+import androidx.compose.foundation.layout.WindowInsets
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -60,7 +62,18 @@ import com.osoterra.mobile.core.util.LocaleStore
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
-import com.osoterra.mobile.ui.common.ScreenHeader
+import androidx.compose.foundation.BorderStroke
+
+import com.osoterra.mobile.ui.common.BandHeader
+import com.osoterra.mobile.ui.common.SectionLabel
+import com.osoterra.mobile.ui.common.SerenaCard
+import com.osoterra.mobile.ui.common.SerenaGutter
+import com.osoterra.mobile.ui.common.SoftIcon
+import com.osoterra.mobile.ui.common.StaggeredEntrance
+import com.osoterra.mobile.ui.theme.BandMuted
+import com.osoterra.mobile.ui.theme.OliveLine
+import com.osoterra.mobile.ui.theme.SageInk
+import com.osoterra.mobile.ui.theme.White
 import com.osoterra.mobile.ui.theme.Emerald100
 import com.osoterra.mobile.ui.theme.Emerald800
 import com.osoterra.mobile.ui.theme.Line
@@ -95,57 +108,76 @@ fun ProfileScreen(
         if (isAdvisor) ProfileEntry(R.string.profile_advisor, Icons.Outlined.Groups, onOpenAdvisor) else null,
     )
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+    Scaffold(contentWindowInsets = WindowInsets(0), containerColor = MaterialTheme.colorScheme.background) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            ScreenHeader(
+            BandHeader(
                 eyebrow = stringResource(R.string.profile_title),
-                title = user?.fullName?.takeIf { it.isNotBlank() } ?: stringResource(R.string.profile_title),
+                title = user?.fullName?.takeIf { it.isNotBlank() } ?: "",
+                extra = { user?.let { IdentityRow(it) } },
             )
-            user?.let { IdentityRow(it) }
-            EntryGroup(field)
-            EntryGroup(account)
-            LanguageCard()
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = {
-                    scope.launch {
-                        container.authRepository.logout()
-                        container.sessionToken = null
-                        onLogout()
-                    }
-                },
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 52.dp),
+            Column(
+                Modifier.padding(horizontal = SerenaGutter),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
-                Spacer(Modifier.size(8.dp))
-                Text(stringResource(R.string.profile_logout))
+                StaggeredEntrance(0) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SectionLabel(stringResource(R.string.profile_section_field))
+                        EntryGroup(field)
+                    }
+                }
+                StaggeredEntrance(1) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SectionLabel(stringResource(R.string.profile_section_account))
+                        EntryGroup(account)
+                    }
+                }
+                StaggeredEntrance(2) { LanguageCard() }
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            container.authRepository.logout()
+                            container.sessionToken = null
+                            onLogout()
+                        }
+                    },
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, OliveLine),
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth()
+                        .heightIn(min = 52.dp),
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = SageInk)
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.profile_logout), color = MaterialTheme.colorScheme.onBackground)
+                }
             }
+        }
+            StatusBarScrim()
         }
     }
 }
 
+/** Iniciales, rol y correo sobre la banda. */
 @Composable
 private fun IdentityRow(user: User) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 14.dp)) {
         Box(
             Modifier
-                .size(48.dp)
+                .size(44.dp)
                 .background(Emerald100, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 user.fullName.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1) }.uppercase(),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = Emerald800,
             )
         }
@@ -155,9 +187,10 @@ private fun IdentityRow(user: User) {
                 stringResource(
                     if (user.role == UserRole.ADVISOR) R.string.profile_role_advisor else R.string.profile_role_producer,
                 ),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
+                color = White,
             )
-            Text(user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(user.email, style = MaterialTheme.typography.bodySmall, color = BandMuted)
         }
     }
 }
@@ -175,11 +208,11 @@ private fun LanguageCard() {
         LocaleStore.SPANISH to stringResource(R.string.language_es),
         LocaleStore.ENGLISH to stringResource(R.string.language_en),
     )
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+    SerenaCard(padding = 20.dp) {
+        Column(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.Language, contentDescription = null, tint = Emerald800)
-                Spacer(Modifier.width(16.dp))
+                SoftIcon(Icons.Outlined.Language, size = 36.dp)
+                Spacer(Modifier.width(14.dp))
                 Text(
                     stringResource(R.string.profile_language),
                     style = MaterialTheme.typography.titleMedium,
@@ -215,25 +248,25 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 
 @Composable
 private fun EntryGroup(entries: List<ProfileEntry>) {
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    SerenaCard(padding = 0.dp) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
             entries.forEachIndexed { index, entry ->
-                if (index > 0) HorizontalDivider(color = Line, modifier = Modifier.padding(start = 56.dp))
-                Surface(onClick = entry.onClick, color = MaterialTheme.colorScheme.surface) {
+                if (index > 0) HorizontalDivider(color = OliveLine, modifier = Modifier.padding(start = 72.dp, end = 20.dp))
+                Surface(onClick = entry.onClick, color = White) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .padding(horizontal = 20.dp),
+                            .heightIn(min = 60.dp)
+                            .padding(horizontal = 18.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(entry.icon, contentDescription = null, tint = Emerald800)
-                        Spacer(Modifier.width(16.dp))
+                        SoftIcon(entry.icon, size = 36.dp)
+                        Spacer(Modifier.width(14.dp))
                         Text(stringResource(entry.labelRes), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                         Icon(
                             Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = SageInk,
                         )
                     }
                 }
