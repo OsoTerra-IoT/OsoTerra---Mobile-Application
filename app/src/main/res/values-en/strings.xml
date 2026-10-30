@@ -289,7 +289,7 @@ Protect your harvest.</string>
 
     <!-- Compact interface: numbers, icons and charts instead of sentences -->
     <string name="ratio_short">%1$d %% of threshold</string>
-    <string name="ratio_threshold_short">%1$d %% of threshold · %2$s dS/m</string>
+    <string name="ratio_threshold_short">%1$d %% of threshold · %2$s\u00A0dS/\u2060m</string>
     <string name="trend_up">Trend of the last %1$d readings: rising from %2$s to %3$s dS/m.</string>
     <string name="trend_down">Trend of the last %1$d readings: falling from %2$s to %3$s dS/m.</string>
     <string name="trend_flat">Trend of the last %1$d readings: steady between %2$s and %3$s dS/m.</string>
@@ -297,4 +297,40 @@ Protect your harvest.</string>
         <item quantity="one">%2$s: %1$d plot</item>
         <item quantity="other">%2$s: %1$d plots</item>
     </plurals>
+    <!-- "Calm band and card" design (variant 6) -->
+    <plurals name="band_attention">
+        <item quantity="one">%1$d of %2$d plots needs attention</item>
+        <item quantity="other">%1$d of %2$d plots need attention</item>
+    </plurals>
+    <string name="band_no_attention">No plot needs attention today</string>
+    <plurals name="band_all_clear">
+        <item quantity="one">Your plot is below the threshold</item>
+        <item quantity="other">Your %1$d plots are below the threshold</item>
+    </plurals>
+    <plurals name="band_advisor_attention">
+        <item quantity="one">%1$d of %2$d client plots needs a visit</item>
+        <item quantity="other">%1$d of %2$d client plots need a visit</item>
+    </plurals>
+    <string name="band_advisor_clear">No client plot needs a visit today</string>
+    <string name="band_empty">Let us start with your first plot</string>
+    <string name="band_advisor_empty">You have no client plots yet</string>
+    <string name="plot_register">Register plot</string>
+    <string name="focus_see_what_to_do">See what to do</string>
+    <string name="focus_see_plot">See plot</string>
+    <string name="focus_client">Client: %1$s</string>
+    <string name="trend_days_up">rising over %1$d\u00A0days</string>
+    <string name="trend_days_down">falling over %1$d\u00A0days</string>
+    <string name="trend_days_flat">steady over %1$d\u00A0days</string>
+    <string name="trend_readings_up">rising over %1$d\u00A0readings</string>
+    <string name="trend_readings_down">falling over %1$d\u00A0readings</string>
+    <string name="trend_readings_flat">steady over %1$d\u00A0readings</string>
+    <string name="advisor_empty_hint">When a producer accepts your advisory request, their plots will show up here.</string>
+    <string name="alerts_pending_section">To attend</string>
+    <string name="alerts_done_section">Attended</string>
+    <string name="notif_option_watch">From Watch</string>
+    <string name="notif_option_high">From High</string>
+    <string name="notif_option_critical">Only when the level is Critical</string>
+    <string name="profile_section_field">My field</string>
+    <string name="profile_section_account">My account</string>
+    <string name="detail_trend_title">Last 30 days</string>
 </resources>
