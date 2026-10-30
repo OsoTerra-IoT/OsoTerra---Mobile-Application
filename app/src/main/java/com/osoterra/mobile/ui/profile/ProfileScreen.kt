@@ -186,12 +186,8 @@ private fun LanguageCard() {
                     modifier = Modifier.semantics { heading() },
                 )
             }
-            Text(
-                stringResource(R.string.profile_language_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
-            )
+            // Sin párrafo de ayuda: el selector ES / EN se explica solo.
+            Spacer(Modifier.height(12.dp))
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 options.forEachIndexed { index, (code, label) ->
                     SegmentedButton(

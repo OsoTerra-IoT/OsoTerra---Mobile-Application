@@ -8,6 +8,21 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import com.osoterra.mobile.ui.common.isLargeFont
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.outlined.Grass
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.ui.text.style.TextOverflow
+import com.osoterra.mobile.ui.common.AdaptiveTiles
+import com.osoterra.mobile.ui.common.EceSparkline
+import com.osoterra.mobile.ui.common.IconStat
+import com.osoterra.mobile.ui.common.LevelCounts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,11 +108,21 @@ fun DashboardScreen(
     val viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.provideFactory(container))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val listState = rememberLazyListState()
+    val largeFont = isLargeFont()
+    val fabExpanded by remember(largeFont) {
+        derivedStateOf { !largeFont && listState.firstVisibleItemIndex == 0 }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
+            // Se reduce a solo el ícono al bajar por la lista o con fuente grande: no tapa las tarjetas.
+            val label = stringResource(R.string.plot_new)
             ExtendedFloatingActionButton(
                 onClick = onCreatePlot,
+                expanded = fabExpanded,
+                modifier = Modifier.semantics { contentDescription = label },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.plot_new), style = MaterialTheme.typography.labelLarge) },
                 containerColor = Emerald700,
@@ -114,6 +139,7 @@ fun DashboardScreen(
                 .padding(padding),
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 112.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -157,31 +183,22 @@ fun DashboardScreen(
                     else -> {
                         item(key = "stats") { Box(Modifier.animateItem()) { StaggeredEntrance(0) { Stats(state) } } }
                         item(key = "section") {
-                            Text(
-                                text = stringResource(R.string.dashboard_section),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier
-                                    .padding(top = 12.dp)
-                                    .semantics { heading() },
-                            )
+                            Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.dashboard_section),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .semantics { heading() },
+                                )
+                                // La explicación de la franja y del gráfico vive en la ayuda (ícono de info).
+                                EceHelpButton(extra = stringResource(R.string.dashboard_legend))
+                            }
                         }
                         itemsIndexed(state.sortedPlots, key = { _, plot -> plot.id }) { index, plot ->
                             StaggeredEntrance(index + 1, Modifier.animateItem()) {
-                                PlotRow(plot = plot, index = index, onClick = { onPlotClick(plot.id) })
-                            }
-                        }
-                        item(key = "legend") {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = stringResource(R.string.dashboard_legend),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .weight(1f),
-                            )
-                            EceHelpButton()
+                                PlotRow(plot = plot, trend = state.trends[plot.id].orEmpty(), index = index, onClick = { onPlotClick(plot.id) })
                             }
                         }
                     }
@@ -231,25 +248,11 @@ private fun Header(state: DashboardUiState, onRefresh: () -> Unit) {
                             liveRegion = LiveRegionMode.Polite
                         },
                 )
-                if (watch > 0) {
-                    Row(
-                        Modifier.padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(
-                            SalinityLevel.WATCH.icon(),
-                            contentDescription = null,
-                            tint = SalinityLevel.WATCH.color(),
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Text(
-                            pluralStringResource(R.plurals.dashboard_watch, watch, watch),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                }
+                // Conteo por nivel en píldoras (ícono + número + palabra), sin frases largas.
+                LevelCounts(
+                    levels = state.plots.map { it.salinityLevel },
+                    modifier = Modifier.padding(top = 12.dp),
+                )
             }
         }
     }
@@ -257,63 +260,44 @@ private fun Header(state: DashboardUiState, onRefresh: () -> Unit) {
 
 @Composable
 private fun Stats(state: DashboardUiState) {
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        StatTile(
-            value = state.plots.size.toString(),
-            suffix = "${state.totalHectares.fmt(1)} ha",
-            label = stringResource(R.string.dashboard_stat_plots),
-            modifier = Modifier.weight(1f),
-        )
-        StatTile(
-            value = state.activeAlerts.toString(),
-            suffix = null,
-            label = stringResource(R.string.dashboard_stat_alerts),
-            modifier = Modifier.weight(1f),
-        )
-        StatTile(
-            value = state.devicesOnline.toString(),
-            suffix = "/ ${state.plots.size}",
-            label = stringResource(R.string.dashboard_stat_devices),
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun StatTile(value: String, suffix: String?, label: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 14.dp)) {
-            Text(
-                text = buildAnnotatedString {
-                    append(value)
-                    if (suffix != null) {
-                        withStyle(
-                            SpanStyle(
-                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            ),
-                        ) { append(" $suffix") }
-                    }
-                },
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
+    val plotsLabel = stringResource(R.string.dashboard_stat_plots)
+    val alertsLabel = stringResource(R.string.dashboard_stat_alerts)
+    val devicesLabel = stringResource(R.string.dashboard_stat_devices)
+    AdaptiveTiles(count = 3) { index, modifier, inline ->
+        when (index) {
+            0 -> IconStat(
+                icon = Icons.Outlined.Landscape,
+                value = state.plots.size.toString(),
+                label = "$plotsLabel · ${state.totalHectares.fmt(1)}\u00A0ha",
+                modifier = modifier,
+                inline = inline,
             )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            1 -> IconStat(
+                icon = Icons.Outlined.NotificationsActive,
+                value = state.activeAlerts.toString(),
+                label = alertsLabel,
+                valueColor = if (state.activeAlerts > 0) SalinityLevel.CRITICAL.color() else MaterialTheme.colorScheme.onSurface,
+                modifier = modifier,
+                inline = inline,
+            )
+            else -> IconStat(
+                icon = Icons.Outlined.Sensors,
+                value = "${state.devicesOnline}/${state.plots.size}",
+                label = devicesLabel,
+                modifier = modifier,
+                inline = inline,
             )
         }
     }
 }
 
+/**
+ * Tarjeta de parcela compacta: nombre, cultivo y área en una línea, la ECe en grande, el mini
+ * gráfico de tendencia y la franja frente al umbral. Los detalles se leen en el detalle.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PlotRow(plot: Plot, index: Int, onClick: () -> Unit) {
+private fun PlotRow(plot: Plot, trend: List<Double>, index: Int, onClick: () -> Unit) {
     val threshold = plot.crop?.thresholdDsPerM
     val ratio = if (plot.lastEcDsPerM != null && threshold != null && threshold > 0) plot.lastEcDsPerM / threshold else null
     val description = stringResource(
@@ -330,59 +314,82 @@ private fun PlotRow(plot: Plot, index: Int, onClick: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(20.dp).animateContentSize()) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
-                    Text(plot.name, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        text = listOfNotNull(
-                            plot.farmName,
-                            plot.crop?.name ?: stringResource(R.string.plot_crop_none),
-                            "${plot.areaHectares.fmt(1)} ha",
-                        ).joinToString(" · "),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        plot.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
+                    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 4.dp)) {
+                        Icon(
+                            Icons.Outlined.Grass,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .padding(top = 2.dp)
+                                .size(16.dp),
+                        )
+                        Text(
+                            text = listOfNotNull(
+                                plot.crop?.name ?: stringResource(R.string.plot_crop_none),
+                                "${plot.areaHectares.fmt(1)}\u00A0ha",
+                            ).joinToString(" · "),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
                 }
-                Column(horizontalAlignment = Alignment.End) {
+                Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 8.dp)) {
                     Text(
                         text = plot.lastEcDsPerM?.fmt(2) ?: "—",
                         style = MaterialTheme.typography.headlineMedium,
                         color = plot.salinityLevel.color(),
+                        maxLines = 1,
                     )
                     Text(stringResource(R.string.unit_ds_m), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            if (trend.size >= 2) {
+                Spacer(Modifier.height(12.dp))
+                EceSparkline(values = trend, threshold = threshold)
+            }
+            Spacer(Modifier.height(12.dp))
             SalinityStrip(ratio = ratio, level = plot.salinityLevel, delayMillis = 120 + index * 90)
-            Spacer(Modifier.height(14.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.height(12.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
                 SalinityChip(level = plot.salinityLevel)
-                Spacer(Modifier.weight(1f))
-                if (ratio != null && threshold != null) {
+                if (ratio != null) {
                     Text(
-                        text = stringResource(R.string.dashboard_ratio, (ratio * 100).toInt(), threshold.fmt(1)),
-                        style = MaterialTheme.typography.bodySmall,
+                        text = stringResource(R.string.ratio_short, (ratio * 100).toInt()),
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
-            Spacer(Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!plot.deviceOnline) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Outlined.CloudOff,
-                        contentDescription = stringResource(R.string.dashboard_device_offline),
+                        if (plot.deviceOnline) Icons.Outlined.Schedule else Icons.Outlined.CloudOff,
+                        contentDescription = if (plot.deviceOnline) null else stringResource(R.string.dashboard_device_offline),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = plot.lastReadingAt ?: stringResource(R.string.dashboard_no_readings),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp),
                     )
                 }
-                Text(
-                    text = plot.lastReadingAt?.let { stringResource(R.string.dashboard_last_reading, it) }
-                        ?: stringResource(R.string.dashboard_no_readings),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
