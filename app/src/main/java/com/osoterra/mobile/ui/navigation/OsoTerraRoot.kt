@@ -5,9 +5,30 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Yard
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.ui.common.DemoChipModel
+import com.osoterra.mobile.ui.common.LocalDemoChip
+import com.osoterra.mobile.ui.theme.Emerald100
+import com.osoterra.mobile.ui.theme.Emerald800
+import com.osoterra.mobile.ui.theme.OliveLine
+import com.osoterra.mobile.ui.theme.SageInk
+import com.osoterra.mobile.ui.theme.SalinityCritical
+import com.osoterra.mobile.ui.theme.TextStrong
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -43,7 +65,6 @@ import com.osoterra.mobile.ui.auth.login.LoginScreen
 import com.osoterra.mobile.ui.auth.register.RegisterScreen
 import com.osoterra.mobile.ui.crops.CropCatalogScreen
 import com.osoterra.mobile.ui.dashboard.DashboardScreen
-import com.osoterra.mobile.ui.demo.DemoBar
 import com.osoterra.mobile.ui.demo.DemoScenarioSheet
 import com.osoterra.mobile.ui.devices.DevicesScreen
 import com.osoterra.mobile.ui.farms.FarmsScreen
@@ -62,9 +83,9 @@ private data class BottomDestination(
 )
 
 private val bottomDestinations = listOf(
-    BottomDestination(Routes.DASHBOARD, R.string.nav_home, Icons.Filled.Yard),
-    BottomDestination(Routes.ALERTS, R.string.nav_alerts, Icons.Filled.Notifications),
-    BottomDestination(Routes.PROFILE, R.string.nav_profile, Icons.Filled.Person),
+    BottomDestination(Routes.DASHBOARD, R.string.nav_home, Icons.Outlined.Home),
+    BottomDestination(Routes.ALERTS, R.string.nav_alerts, Icons.Outlined.Notifications),
+    BottomDestination(Routes.PROFILE, R.string.nav_profile, Icons.Outlined.Person),
 )
 
 private val signedOutRoutes = setOf(Routes.STARTUP, Routes.LOGIN, Routes.REGISTER, Routes.FORGOT)
@@ -142,16 +163,36 @@ fun OsoTerraRoot() {
         )
     }
 
+    // Alertas sin atender para la insignia de la pestaña; se vuelve a contar al cambiar de pantalla.
+    var pendingAlerts by remember { mutableIntStateOf(0) }
+    LaunchedEffect(currentRoute, demoScenario, showBottomBar) {
+        if (!showBottomBar) return@LaunchedEffect
+        pendingAlerts = (container.alertRepository.getAlerts() as? DataResult.Success)?.data?.count { !it.acknowledged } ?: 0
+    }
+    val demoChip = if (showDemoBar) DemoChipModel(demoScenario?.number) { demoSheetOpen = true } else null
+
+    CompositionLocalProvider(LocalDemoChip provides demoChip) {
     Scaffold(
-        contentWindowInsets = if (fullBleed) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            if (showDemoBar) DemoBar(selected = demoScenario, onOpen = { demoSheetOpen = true })
+        // Arriba no se reserva la barra de estado: la banda verde y las cabeceras la cubren.
+        contentWindowInsets = when {
+            fullBleed -> WindowInsets(0)
+            currentRoute == Routes.STARTUP || currentRoute == null -> ScaffoldDefaults.contentWindowInsets
+            else -> ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
         },
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (showBottomBar) {
-                NavigationBar {
+            if (showBottomBar) androidx.compose.foundation.layout.Column {
+                HorizontalDivider(color = OliveLine)
+                NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
                     bottomDestinations.forEach { dest ->
+                        val label = stringResource(dest.labelRes)
+                        val badge = if (dest.route == Routes.ALERTS) pendingAlerts else 0
+                        val badgeDescription = if (badge > 0) {
+                            pluralStringResource(R.plurals.alerts_summary, badge, badge)
+                        } else {
+                            null
+                        }
                         NavigationBarItem(
                             selected = currentRoute == dest.route,
                             onClick = {
@@ -163,8 +204,24 @@ fun OsoTerraRoot() {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(dest.icon, contentDescription = null) },
-                            label = { Text(stringResource(dest.labelRes)) },
+                            icon = {
+                                BadgedBox(badge = {
+                                    if (badge > 0) Badge(containerColor = SalinityCritical) { Text("$badge") }
+                                }) { Icon(dest.icon, contentDescription = null) }
+                            },
+                            label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Emerald800,
+                                selectedTextColor = TextStrong,
+                                indicatorColor = Emerald100,
+                                unselectedIconColor = SageInk,
+                                unselectedTextColor = SageInk,
+                            ),
+                            modifier = if (badgeDescription != null) {
+                                Modifier.semantics { contentDescription = "$label. $badgeDescription" }
+                            } else {
+                                Modifier
+                            },
                         )
                     }
                 }
@@ -210,10 +267,17 @@ fun OsoTerraRoot() {
                 DashboardScreen(
                     onPlotClick = { plotId -> navController.navigate(Routes.plotDetail(plotId)) },
                     onCreatePlot = { navController.navigate(Routes.CREATE_PLOT) },
+                    onOpenAlerts = {
+                        navController.navigate(Routes.ALERTS) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(Routes.ALERTS) {
-                AlertsScreen()
+                AlertsScreen(onPendingCount = { pendingAlerts = it })
             }
             composable(Routes.PROFILE) {
                 ProfileScreen(
@@ -280,5 +344,6 @@ fun OsoTerraRoot() {
                 )
             }
         }
+    }
     }
 }

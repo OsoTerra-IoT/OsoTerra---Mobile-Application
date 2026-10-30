@@ -23,36 +23,36 @@ private val LightColors = lightColorScheme(
     onSecondaryContainer = Emerald900,
     tertiary = Emerald800,
     onTertiary = White,
-    background = Salt,
-    onBackground = Ink,
+    background = Ivory,
+    onBackground = TextStrong,
     surface = White,
-    onSurface = Ink,
-    surfaceVariant = Track,
-    onSurfaceVariant = Neutral600,
+    onSurface = TextStrong,
+    surfaceVariant = Ivory,
+    onSurfaceVariant = SageInk,
     surfaceContainerLowest = White,
     surfaceContainerLow = White,
     surfaceContainer = White,
-    surfaceContainerHigh = Salt,
-    surfaceContainerHighest = Track,
-    outline = Neutral600,
-    outlineVariant = Line,
+    surfaceContainerHigh = White,
+    surfaceContainerHighest = Ivory,
+    outline = Sage,
+    outlineVariant = OliveLine,
     error = SalinityCritical,
     onError = White,
     errorContainer = SalinityCriticalContainer,
     onErrorContainer = SalinityCritical,
 )
 
-/** Radios de la guía: 8 dp controles, 12–20 dp tarjetas, píldoras completas. */
+/** Radios «Tierra Serena»: campos 16 dp, mosaicos 20 dp, tarjetas 24–28 dp, píldoras completas. */
 private val OsoShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
+    extraSmall = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(16.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(24.dp),
     extraLarge = RoundedCornerShape(28.dp),
 )
 
 /**
- * Tema claro único, como la Web App: el fondo «sal» y los verdes de la marca en toda la app.
+ * Tema claro único «Tierra Serena»: fondo marfil, superficies blancas y los verdes de la marca.
  */
 @Composable
 fun OsoTerraTheme(content: @Composable () -> Unit) {
@@ -61,7 +61,7 @@ fun OsoTerraTheme(content: @Composable () -> Unit) {
         SideEffect {
             val window = (view.context as Activity).window
             @Suppress("DEPRECATION")
-            window.statusBarColor = Salt.toArgb()
+            window.statusBarColor = Ivory.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }

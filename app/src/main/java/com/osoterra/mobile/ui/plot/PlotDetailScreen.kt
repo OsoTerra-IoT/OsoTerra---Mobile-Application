@@ -1,5 +1,6 @@
 package com.osoterra.mobile.ui.plot
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
@@ -74,6 +75,14 @@ import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.Reading
 import com.osoterra.mobile.ui.common.EceHelpButton
+import com.osoterra.mobile.ui.common.SerenaTopBar
+import com.osoterra.mobile.ui.common.BigReading
+import com.osoterra.mobile.ui.common.RiskSparkline
+import com.osoterra.mobile.ui.common.SerenaCard
+import com.osoterra.mobile.ui.common.SerenaTile
+import com.osoterra.mobile.ui.common.SoftIcon
+import com.osoterra.mobile.ui.common.TileGrid
+import com.osoterra.mobile.ui.theme.SageInk
 import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.ui.common.OsoMotion
 import com.osoterra.mobile.ui.common.SalinityChip
@@ -112,15 +121,12 @@ fun PlotDetailScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(state.plot?.name.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
+            SerenaTopBar(
+                title = state.plot?.name.orEmpty(),
+                onBack = onBack,
                 actions = {
                     if (state.plot != null) {
                         IconButton(onClick = { menuExpanded = true }) {
@@ -144,7 +150,6 @@ fun PlotDetailScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
         },
     ) { padding ->
@@ -153,8 +158,8 @@ fun PlotDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             val plot = state.plot
             val reducedMotion = rememberReducedMotion()
@@ -172,7 +177,7 @@ fun PlotDetailScreen(
                 },
                 label = "detail",
             ) { phase ->
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     when (phase) {
                         DetailPhase.LOADING -> {
                             SkeletonCard(height = 200.dp)
@@ -226,57 +231,34 @@ fun PlotDetailScreen(
 }
 
 /**
- * Lo primero que responde la pantalla es «¿cómo está mi suelo?» en palabras: el nivel y
- * cuánto del umbral del cultivo usa. El valor en dS/m queda como dato de apoyo.
+ * Lo primero que responde la pantalla es «¿cómo está mi suelo?»: el nivel en palabras, la ECe
+ * grande, los últimos 30 días con la franja de riesgo y cuánto del umbral usa.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatusHero(plot: Plot, trend: List<Double>) {
     val threshold = plot.crop?.thresholdDsPerM
     val ratio = if (plot.lastEcDsPerM != null && threshold != null && threshold > 0) plot.lastEcDsPerM / threshold else null
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(20.dp).animateContentSize()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                SalinityChip(plot.salinityLevel, modifier = Modifier.semantics { heading() })
-                if (ratio != null && threshold != null) {
-                    Text(
-                        stringResource(R.string.ratio_threshold_short, (ratio * 100).toInt(), threshold.fmt(1)),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                Text(
-                    text = buildAnnotatedString {
-                        append(plot.lastEcDsPerM?.fmt(2) ?: "—")
-                        withStyle(
-                            SpanStyle(
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            ),
-                        ) { append(" " + stringResource(R.string.unit_ds_m)) }
-                    },
-                    style = MaterialTheme.typography.displaySmall,
-                    color = plot.salinityLevel.color(),
-                    modifier = Modifier.weight(1f),
-                )
-                EceHelpButton()
-            }
-            when {
-                plot.crop == null -> HintLine(stringResource(R.string.detail_no_crop))
-                plot.lastEcDsPerM == null -> HintLine(stringResource(R.string.detail_no_readings))
-            }
-            if (trend.size >= 2) {
-                Spacer(Modifier.height(12.dp))
-                EceSparkline(values = trend, threshold = threshold, height = 56.dp)
-            }
-            Spacer(Modifier.height(14.dp))
-            SalinityStrip(ratio = ratio, level = plot.salinityLevel)
+    SerenaCard(modifier = Modifier.animateContentSize()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SalinityChip(plot.salinityLevel, modifier = Modifier.semantics { heading() })
+            Spacer(Modifier.weight(1f))
+            EceHelpButton()
+        }
+        BigReading(plot.lastEcDsPerM, modifier = Modifier.padding(top = 4.dp))
+        when {
+            plot.crop == null -> HintLine(stringResource(R.string.detail_no_crop))
+            plot.lastEcDsPerM == null -> HintLine(stringResource(R.string.detail_no_readings))
+        }
+        if (trend.size >= 2) {
+            RiskSparkline(values = trend, threshold = threshold, height = 56.dp, modifier = Modifier.padding(top = 12.dp))
+        }
+        if (ratio != null && threshold != null) {
+            Text(
+                stringResource(R.string.ratio_threshold_short, (ratio * 100).toInt(), threshold.fmt(1)),
+                style = MaterialTheme.typography.bodySmall,
+                color = SageInk,
+                modifier = Modifier.padding(top = 6.dp),
+            )
         }
     }
 }
@@ -286,14 +268,14 @@ private fun HintLine(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = SageInk,
         modifier = Modifier.padding(top = 4.dp),
     )
 }
 
 private data class Fact(val icon: ImageVector, val label: String, val value: String)
 
-/** Datos de la parcela en mosaicos con ícono (dos por fila; uno por fila con fuente grande). */
+/** Datos de la parcela en mosaicos blancos con ícono (dos por fila; uno con fuente grande). */
 @Composable
 private fun Facts(plot: Plot, latest: Reading?) {
     val facts = listOfNotNull(
@@ -308,32 +290,23 @@ private fun Facts(plot: Plot, latest: Reading?) {
         ),
         plot.lastReadingAt?.let { Fact(Icons.Outlined.Schedule, stringResource(R.string.detail_last_reading), it) },
     )
-    FlowTiles { tileModifier ->
-        facts.forEach { fact ->
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                modifier = tileModifier.semantics(mergeDescendants = true) {},
-            ) {
-                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconBadge(fact.icon)
-                    Column(Modifier.padding(start = 10.dp)) {
-                        Text(
-                            fact.value,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            fact.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
+    TileGrid(facts) { fact, modifier ->
+        SerenaTile(modifier = modifier.semantics(mergeDescendants = true) {}, filled = true) {
+            SoftIcon(fact.icon, size = 36.dp)
+            Column(Modifier.padding(top = 10.dp)) {
+                Text(
+                    fact.value,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    fact.label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SageInk,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -341,40 +314,39 @@ private fun Facts(plot: Plot, latest: Reading?) {
 
 @Composable
 private fun History(crop: Crop?, readings: List<Reading>) {
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.detail_history),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { heading() },
-                )
-                EceHelpButton(
-                    extra = stringResource(if (crop != null) R.string.detail_history_hint else R.string.detail_history_hint_no_crop),
-                )
-            }
-            if (readings.isEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.detail_no_readings),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                return@Column
-            }
-            Spacer(Modifier.height(8.dp))
-            EcChart(readings, crop?.thresholdDsPerM)
-            Spacer(Modifier.height(12.dp))
-            // Resumen en texto (guía 5.1: cada gráfico tiene resumen y tabla alternativa).
+    SerenaCard(padding = 20.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                chartSummary(readings, crop?.thresholdDsPerM),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                stringResource(R.string.detail_history),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() },
             )
-            ReadingsTable(readings, crop?.thresholdDsPerM)
+            EceHelpButton(
+                extra = stringResource(if (crop != null) R.string.detail_history_hint else R.string.detail_history_hint_no_crop),
+            )
         }
+        if (readings.isEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.detail_no_readings),
+                style = MaterialTheme.typography.bodyMedium,
+                color = SageInk,
+            )
+            return@SerenaCard
+        }
+        Spacer(Modifier.height(8.dp))
+        EcChart(readings, crop?.thresholdDsPerM)
+        Spacer(Modifier.height(12.dp))
+        // Resumen en texto (guía 5.1: cada gráfico tiene resumen y tabla alternativa).
+        Text(
+            chartSummary(readings, crop?.thresholdDsPerM),
+            style = MaterialTheme.typography.bodySmall,
+            color = SageInk,
+        )
+        ReadingsTable(readings, crop?.thresholdDsPerM)
     }
 }
 

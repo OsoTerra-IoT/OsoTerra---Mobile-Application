@@ -302,7 +302,7 @@ Protege tu cosecha.</string>
 
     <!-- Interfaz compacta: números, íconos y gráficos en lugar de frases -->
     <string name="ratio_short">%1$d %% del umbral</string>
-    <string name="ratio_threshold_short">%1$d %% del umbral · %2$s dS/m</string>
+    <string name="ratio_threshold_short">%1$d %% del umbral · %2$s\u00A0dS/\u2060m</string>
     <string name="trend_up">Tendencia de las últimas %1$d lecturas: sube de %2$s a %3$s dS/m.</string>
     <string name="trend_down">Tendencia de las últimas %1$d lecturas: baja de %2$s a %3$s dS/m.</string>
     <string name="trend_flat">Tendencia de las últimas %1$d lecturas: estable entre %2$s y %3$s dS/m.</string>
@@ -310,4 +310,43 @@ Protege tu cosecha.</string>
         <item quantity="one">%2$s: %1$d parcela</item>
         <item quantity="other">%2$s: %1$d parcelas</item>
     </plurals>
+    <!-- Diseño «Banda serena y tarjeta» (variante 6) -->
+    <plurals name="band_attention">
+        <item quantity="one">%1$d de %2$d parcelas necesita atención</item>
+        <item quantity="many">%1$d de %2$d parcelas necesitan atención</item>
+        <item quantity="other">%1$d de %2$d parcelas necesitan atención</item>
+    </plurals>
+    <string name="band_no_attention">Ninguna parcela necesita atención hoy</string>
+    <plurals name="band_all_clear">
+        <item quantity="one">Tu parcela está bajo el umbral</item>
+        <item quantity="many">Tus %1$d parcelas están bajo el umbral</item>
+        <item quantity="other">Tus %1$d parcelas están bajo el umbral</item>
+    </plurals>
+    <plurals name="band_advisor_attention">
+        <item quantity="one">%1$d de %2$d parcelas de tus clientes necesita una visita</item>
+        <item quantity="many">%1$d de %2$d parcelas de tus clientes necesitan una visita</item>
+        <item quantity="other">%1$d de %2$d parcelas de tus clientes necesitan una visita</item>
+    </plurals>
+    <string name="band_advisor_clear">Ninguna parcela de tus clientes necesita una visita hoy</string>
+    <string name="band_empty">Empecemos por tu primera parcela</string>
+    <string name="band_advisor_empty">Aún no tienes parcelas de clientes</string>
+    <string name="plot_register">Registrar parcela</string>
+    <string name="focus_see_what_to_do">Ver qué hacer</string>
+    <string name="focus_see_plot">Ver parcela</string>
+    <string name="focus_client">Cliente: %1$s</string>
+    <string name="trend_days_up">subiendo en %1$d\u00A0días</string>
+    <string name="trend_days_down">bajando en %1$d\u00A0días</string>
+    <string name="trend_days_flat">estable en %1$d\u00A0días</string>
+    <string name="trend_readings_up">subiendo en %1$d\u00A0lecturas</string>
+    <string name="trend_readings_down">bajando en %1$d\u00A0lecturas</string>
+    <string name="trend_readings_flat">estable en %1$d\u00A0lecturas</string>
+    <string name="advisor_empty_hint">Cuando un productor acepte tu solicitud de asesoría, sus parcelas aparecerán aquí.</string>
+    <string name="alerts_pending_section">Por atender</string>
+    <string name="alerts_done_section">Atendidas</string>
+    <string name="notif_option_watch">Desde En vigilancia</string>
+    <string name="notif_option_high">Desde Alto</string>
+    <string name="notif_option_critical">Solo cuando el nivel sea Muy alto</string>
+    <string name="profile_section_field">Mi campo</string>
+    <string name="profile_section_account">Mi cuenta</string>
+    <string name="detail_trend_title">Últimos 30 días</string>
 </resources>

@@ -1,5 +1,16 @@
 package com.osoterra.mobile.ui.devices
 
+import com.osoterra.mobile.ui.theme.White
+import com.osoterra.mobile.ui.theme.OliveLine
+import com.osoterra.mobile.ui.theme.Emerald700
+import com.osoterra.mobile.ui.common.SoftIcon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.WindowInsets
+import com.osoterra.mobile.ui.common.SerenaTopBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -93,24 +104,16 @@ fun DevicesScreen(
     var calibrateDevice by remember { mutableStateOf<Device?>(null) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.devices_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
+            SerenaTopBar(title = stringResource(R.string.devices_title), onBack = onBack)
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showRegister = true },
+                shape = RoundedCornerShape(50),
+                containerColor = Emerald700,
+                contentColor = White,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.device_register)) },
             )
@@ -129,7 +132,7 @@ fun DevicesScreen(
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                 )
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.devices, key = { it.id }) { device ->
@@ -174,16 +177,20 @@ private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrat
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, OliveLine),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(20.dp)) {
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                SoftIcon(Icons.Outlined.Sensors)
+                Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(device.code, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(device.code, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
                         device.plotName ?: stringResource(R.string.device_unlinked),
                         style = MaterialTheme.typography.bodyMedium,
@@ -205,8 +212,15 @@ private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrat
                     Spacer(Modifier.size(4.dp))
                     Text("$battery%", style = MaterialTheme.typography.bodyLarge)
                 }
-                Spacer(Modifier.weight(1f))
+                if (device.batteryPct != null) Spacer(Modifier.size(16.dp))
                 device.lastSeen?.let {
+                    Icon(
+                        Icons.Outlined.Schedule,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.size(4.dp))
                     Text(
                         stringResource(R.string.device_last_seen, it),
                         style = MaterialTheme.typography.bodyMedium,
@@ -224,9 +238,14 @@ private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrat
                 )
             }
 
-            Spacer(Modifier.height(4.dp))
-            TextButton(onClick = onCalibrate) {
-                Text(stringResource(R.string.device_calibrate))
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onCalibrate,
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, Emerald700),
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.device_calibrate), color = Emerald700)
             }
         }
     }
@@ -236,14 +255,13 @@ private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrat
 private fun StatusChip(status: DeviceStatus) {
     Box(
         Modifier
-            .background(status.color(), RoundedCornerShape(50))
+            .background(status.color().copy(alpha = 0.12f), RoundedCornerShape(50))
             .padding(horizontal = 12.dp, vertical = 5.dp),
     ) {
         Text(
             status.label(),
-            color = Color.White,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
+            color = status.color(),
+            style = MaterialTheme.typography.labelMedium,
         )
     }
 }

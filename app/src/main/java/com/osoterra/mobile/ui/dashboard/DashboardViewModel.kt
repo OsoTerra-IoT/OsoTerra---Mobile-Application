@@ -10,6 +10,9 @@ import com.osoterra.mobile.domain.model.AdvisoryRequest
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.domain.model.UserRole
+import com.osoterra.mobile.domain.model.Reading
+import com.osoterra.mobile.domain.model.SupervisedPlot
+import com.osoterra.mobile.domain.repository.AdvisorRepository
 import com.osoterra.mobile.domain.repository.AdvisoryLinkRepository
 import com.osoterra.mobile.domain.repository.AlertRepository
 import com.osoterra.mobile.domain.repository.AuthRepository
@@ -35,6 +38,13 @@ data class DashboardUiState(
     val respondingTo: String? = null,
     /** ECe de las últimas lecturas de cada parcela, para su mini gráfico de tendencia. */
     val trends: Map<String, List<Double>> = emptyMap(),
+    /** Días que abarca cada tendencia (de la primera a la última lectura); null si no se sabe. */
+    val trendDays: Map<String, Int> = emptyMap(),
+    /** true si quien entra es asesor: el inicio habla de las parcelas de sus clientes. */
+    val isAdvisor: Boolean = false,
+    /** Asesor: nombre corto de la parcela y su cliente, por id de parcela. */
+    val plotTitles: Map<String, String> = emptyMap(),
+    val clients: Map<String, String> = emptyMap(),
 ) {
     /**
      * Parcelas que necesitan atención: solo las de nivel Alto o Muy alto, la misma regla que
@@ -50,6 +60,14 @@ data class DashboardUiState(
     val sortedPlots: List<Plot>
         get() = plots.sortedWith(compareByDescending<Plot> { it.salinityLevel.urgency() }.thenBy { it.name })
 
+    /** La parcela más urgente (la primera del orden por gravedad); va en la tarjeta grande. */
+    val focusPlot: Plot? get() = sortedPlots.firstOrNull()
+
+    /** El resto de parcelas, en mosaicos. */
+    val otherPlots: List<Plot> get() = sortedPlots.drop(1)
+
+    fun titleOf(plot: Plot): String = plotTitles[plot.id] ?: plot.name
+
     val devicesOnline: Int get() = plots.count { it.deviceOnline }
     val totalHectares: Double get() = plots.sumOf { it.areaHectares }
 
@@ -57,6 +75,19 @@ data class DashboardUiState(
         val ATTENTION = setOf(SalinityLevel.HIGH, SalinityLevel.CRITICAL)
     }
 }
+
+/** Parcela de un cliente cuando el Backend no la devuelve en la lista propia del asesor. */
+private fun SupervisedPlot.asPlot() = Plot(
+    id = id,
+    name = plotName,
+    farmName = "",
+    areaHectares = 0.0,
+    crop = null,
+    salinityLevel = salinityLevel,
+    lastEcDsPerM = lastEcDsPerM,
+    lastReadingAt = null,
+    deviceOnline = true,
+)
 
 data class RequestOutcome(val advisorName: String, val accepted: Boolean)
 
@@ -73,6 +104,7 @@ class DashboardViewModel(
     private val plotRepository: PlotRepository,
     private val alertRepository: AlertRepository,
     private val advisoryLinkRepository: AdvisoryLinkRepository,
+    private val advisorRepository: AdvisorRepository? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -101,20 +133,32 @@ class DashboardViewModel(
             } else {
                 emptyList()
             }
+            val isAdvisor = currentUser?.role == UserRole.ADVISOR
+            // Asesor: las parcelas de sus clientes, para nombrar al cliente en cada tarjeta.
+            val supervised = if (isAdvisor) {
+                (advisorRepository?.getSupervisedPlots() as? DataResult.Success)?.data.orEmpty()
+            } else {
+                emptyList()
+            }
             val activeAlerts = (alerts.await() as? DataResult.Success)?.data?.count { !it.acknowledged } ?: 0
             when (val result = plots.await()) {
                 is DataResult.Success -> {
+                    val list = result.data.ifEmpty { supervised.map { it.asPlot() } }
+                    val byId = supervised.associateBy { it.id }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             isRefreshing = false,
                             firstName = firstName,
-                            plots = result.data,
+                            plots = list,
                             activeAlerts = activeAlerts,
                             requests = requests,
+                            isAdvisor = isAdvisor,
+                            plotTitles = byId.mapValues { (_, s) -> s.plotName },
+                            clients = byId.mapValues { (_, s) -> s.producerName }.filterValues { it.isNotBlank() },
                         )
                     }
-                    loadTrends(result.data)
+                    loadTrends(list)
                 }
                 is DataResult.Error -> _uiState.update {
                     it.copy(isLoading = false, isRefreshing = false, firstName = firstName, errorMessage = result.message)
@@ -129,18 +173,18 @@ class DashboardViewModel(
      */
     private fun loadTrends(plots: List<Plot>) {
         viewModelScope.launch {
-            val trends = plots
+            val series = plots
                 .filter { it.lastEcDsPerM != null }
                 .map { plot -> plot.id to async { plotRepository.getReadings(plot.id) } }
                 .mapNotNull { (id, call) ->
                     (call.await() as? DataResult.Success)?.data
                         ?.takeLast(TREND_POINTS)
-                        ?.map { it.ecDsPerM }
                         ?.takeIf { it.size >= 2 }
                         ?.let { id to it }
                 }
-                .toMap()
-            _uiState.update { it.copy(trends = trends) }
+            val trends = series.associate { (id, readings) -> id to readings.map { it.ecDsPerM } }
+            val days = series.mapNotNull { (id, readings) -> daySpan(readings)?.let { id to it } }.toMap()
+            _uiState.update { it.copy(trends = trends, trendDays = days) }
         }
     }
 
@@ -168,6 +212,22 @@ class DashboardViewModel(
     }
 
     companion object {
+        /**
+         * Días entre la primera y la última lectura, según su fecha ISO (AAAA-MM-DD…). Si alguna
+         * fecha no se conoce, null: la tarjeta dice «en N lecturas» en lugar de inventar días.
+         */
+        fun daySpan(readings: List<Reading>): Int? {
+            val first = readings.firstOrNull()?.capturedAt?.take(10) ?: return null
+            val last = readings.lastOrNull()?.capturedAt?.take(10) ?: return null
+            return try {
+                val format = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                val millis = format.parse(last)!!.time - format.parse(first)!!.time
+                (millis / 86_400_000L).toInt().takeIf { it > 0 }?.let { it + 1 }
+            } catch (_: Exception) {
+                null
+            }
+        }
+
         /** Puntos del mini gráfico: un mes de lecturas diarias. */
         const val TREND_POINTS = 30
 
@@ -178,6 +238,7 @@ class DashboardViewModel(
                     container.plotRepository,
                     container.alertRepository,
                     container.advisoryLinkRepository,
+                    container.advisorRepository,
                 )
             }
         }

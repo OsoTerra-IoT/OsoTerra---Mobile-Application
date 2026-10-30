@@ -1,5 +1,6 @@
 package com.osoterra.mobile.ui.settings
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,6 +52,15 @@ import com.osoterra.mobile.R
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.AlertSeverity
 import com.osoterra.mobile.ui.common.ErrorCard
+import com.osoterra.mobile.ui.common.SerenaTopBar
+import com.osoterra.mobile.ui.common.SerenaCard
+import com.osoterra.mobile.ui.common.SoftIcon
+import com.osoterra.mobile.ui.theme.OliveLine
+import com.osoterra.mobile.ui.theme.SageInk
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import com.osoterra.mobile.ui.common.SeverityChip
 import com.osoterra.mobile.ui.common.SkeletonCard
 
@@ -77,18 +87,11 @@ fun NotificationSettingsScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.notif_settings_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-            )
+            SerenaTopBar(title = stringResource(R.string.notif_settings_title), onBack = onBack)
         },
     ) { padding ->
         Column(
@@ -96,8 +99,8 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when {
                 state.isLoading -> {
@@ -110,6 +113,7 @@ fun NotificationSettingsScreen(
                     Section(
                         title = stringResource(R.string.notif_min_severity),
                         hint = stringResource(R.string.notif_min_severity_hint),
+                        icon = Icons.Outlined.NotificationsActive,
                     ) {
                         Column(Modifier.selectableGroup()) {
                             selectableSeverities.forEach { severity ->
@@ -126,19 +130,31 @@ fun NotificationSettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     RadioButton(selected = selected, onClick = null)
-                                    Spacer(Modifier.padding(start = 12.dp))
-                                    SeverityChip(severity)
+                                    Spacer(Modifier.padding(start = 8.dp))
+                                    Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                                        Text(
+                                            stringResource(
+                                                when (severity) {
+                                                    AlertSeverity.WATCH -> R.string.notif_option_watch
+                                                    AlertSeverity.HIGH -> R.string.notif_option_high
+                                                    AlertSeverity.CRITICAL -> R.string.notif_option_critical
+                                                },
+                                            ),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        SeverityChip(severity, modifier = Modifier.padding(top = 6.dp))
+                                    }
                                 }
                             }
                         }
                     }
-                    Section(title = stringResource(R.string.notif_channels), hint = null) {
+                    Section(title = stringResource(R.string.notif_channels), hint = null, icon = Icons.AutoMirrored.Outlined.Send) {
                         ToggleRow(
                             label = stringResource(R.string.notif_channel_push),
                             checked = state.preferences.pushEnabled,
                             onCheckedChange = viewModel::onPushChange,
                         )
-                        HorizontalDivider()
+                        HorizontalDivider(color = OliveLine)
                         ToggleRow(
                             label = stringResource(R.string.notif_channel_email),
                             checked = state.preferences.emailEnabled,
@@ -167,16 +183,29 @@ fun NotificationSettingsScreen(
 }
 
 @Composable
-private fun Section(title: String, hint: String?, content: @Composable () -> Unit) {
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(20.dp)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-            if (hint != null) {
-                Text(hint, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Spacer(Modifier.height(8.dp))
-            content()
+private fun Section(title: String, hint: String?, icon: ImageVector, content: @Composable () -> Unit) {
+    SerenaCard(padding = 20.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SoftIcon(icon, size = 36.dp)
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .semantics { heading() },
+            )
         }
+        if (hint != null) {
+            Text(
+                hint,
+                style = MaterialTheme.typography.bodySmall,
+                color = SageInk,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        content()
     }
 }
 
