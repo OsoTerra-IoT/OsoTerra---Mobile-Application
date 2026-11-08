@@ -121,6 +121,8 @@
     <string name="device_last_seen">Last report: %1$s</string>
     <string name="device_calibrate">Calibrate</string>
     <string name="device_reference_value">Laboratory ECe (dS/m)</string>
+    <string name="device_laboratory">Laboratory</string>
+    <string name="device_default_laboratory">Reference laboratory</string>
     <string name="device_sample_date">Sampling date (YYYY-MM-DD)</string>
     <string name="device_last_calibration">Last calibration: %1$s · factor %2$s</string>
 

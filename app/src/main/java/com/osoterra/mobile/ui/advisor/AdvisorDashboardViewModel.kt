@@ -24,6 +24,8 @@ data class AdvisorDashboardUiState(
     val cropFilter: String? = null,
     val sortByCriticality: Boolean = false,
     val selectedIds: Set<String> = emptySet(),
+    /** Los clientes no se pudieron cargar: se distingue de «sin parcelas supervisadas». */
+    val errorMessage: String? = null,
 ) {
     val producers: List<String> get() = allPlots.map { it.producerName }.distinct().sorted()
     val crops: List<String> get() = allPlots.mapNotNull { it.cropName }.distinct().sorted()
@@ -54,10 +56,12 @@ class AdvisorDashboardViewModel(
     }
 
     fun load() {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            val plots = (advisorRepository.getSupervisedPlots() as? DataResult.Success)?.data ?: emptyList()
-            _uiState.update { it.copy(isLoading = false, allPlots = plots) }
+            when (val result = advisorRepository.getSupervisedPlots()) {
+                is DataResult.Success -> _uiState.update { it.copy(isLoading = false, allPlots = result.data) }
+                is DataResult.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+            }
         }
     }
 

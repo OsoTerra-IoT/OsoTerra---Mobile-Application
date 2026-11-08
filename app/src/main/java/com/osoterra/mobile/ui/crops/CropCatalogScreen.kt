@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Crop
 
@@ -66,6 +67,12 @@ fun CropCatalogScreen(
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
+            } else if (state.errorMessage != null) {
+                ErrorCard(
+                    state.errorMessage!!,
+                    onRetry = viewModel::load,
+                    modifier = Modifier.padding(20.dp),
+                )
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 96.dp),

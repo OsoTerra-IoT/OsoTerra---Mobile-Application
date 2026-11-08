@@ -60,4 +60,11 @@ class RemoteSupportTest {
         assertEquals("PUSH", NotificationPreferences(AlertSeverity.WATCH, true, false).toSetDto().channel)
         assertEquals("WATCH", NotificationPreferences(AlertSeverity.WATCH, true, false).toSetDto().minimumSeverity)
     }
+
+    @Test
+    fun `calibration keeps the laboratory that was typed and falls back to the default`() {
+        assertEquals("Lab Agrario UNALM", laboratoryNameOrDefault("  Lab Agrario UNALM "))
+        assertEquals("Laboratorio de referencia", laboratoryNameOrDefault("   "))
+        assertEquals("Laboratorio de referencia", laboratoryNameOrDefault(""))
+    }
 }

@@ -24,6 +24,8 @@ data class DevicesUiState(
     val calibrationsByDevice: Map<String, List<Calibration>> = emptyMap(),
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
+    /** La lista de dispositivos no se pudo cargar (red, 403…): se distingue de «sin dispositivos». */
+    val loadError: String? = null,
 )
 
 class DevicesViewModel(
@@ -39,9 +41,14 @@ class DevicesViewModel(
     }
 
     fun load() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, loadError = null) }
         viewModelScope.launch {
-            val devices = (deviceRepository.getDevices() as? DataResult.Success)?.data ?: emptyList()
+            val devicesResult = deviceRepository.getDevices()
+            if (devicesResult is DataResult.Error) {
+                _uiState.update { it.copy(isLoading = false, loadError = devicesResult.message) }
+                return@launch
+            }
+            val devices = (devicesResult as DataResult.Success).data
             val plots = (plotRepository.getPlots() as? DataResult.Success)?.data ?: emptyList()
             val calibs = devices.associate { device ->
                 device.id to ((deviceRepository.getCalibrations(device.id) as? DataResult.Success)?.data ?: emptyList())
@@ -69,11 +76,17 @@ class DevicesViewModel(
         }
     }
 
-    fun registerCalibration(deviceId: String, referenceValue: Double, date: String, onDone: () -> Unit) {
+    fun registerCalibration(
+        deviceId: String,
+        referenceValue: Double,
+        laboratoryName: String,
+        date: String,
+        onDone: () -> Unit,
+    ) {
         if (_uiState.value.isSaving) return
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            when (val result = deviceRepository.registerCalibration(deviceId, referenceValue, date)) {
+            when (val result = deviceRepository.registerCalibration(deviceId, referenceValue, laboratoryName, date)) {
                 is DataResult.Success -> {
                     _uiState.update { it.copy(isSaving = false) }
                     load()

@@ -11,6 +11,7 @@ interface DeviceRepository {
     suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        laboratoryName: String,
         date: String,
     ): DataResult<Calibration>
 }

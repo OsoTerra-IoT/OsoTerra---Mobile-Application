@@ -105,11 +105,11 @@ fun EmptyCard(
 
 /** Error de carga anunciado por el lector de pantalla, con reintento. */
 @Composable
-fun ErrorCard(message: String, onRetry: () -> Unit) {
+fun ErrorCard(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.errorContainer,
-        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite },
     ) {
         Column(Modifier.fillMaxWidth().padding(24.dp)) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
