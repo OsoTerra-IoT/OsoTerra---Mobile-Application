@@ -1,6 +1,8 @@
 package com.osoterra.mobile.ui.alerts
 
 import com.osoterra.mobile.ui.common.StatusBarScrim
+import com.osoterra.mobile.ui.common.ContingencyStatus
+import com.osoterra.mobile.ui.common.label
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -238,17 +240,6 @@ private fun Alert.displayMessage(): String {
 }
 
 @Composable
-private fun CorrectiveActionType.label(): String = stringResource(
-    when (this) {
-        CorrectiveActionType.LEACHING -> R.string.action_leaching
-        CorrectiveActionType.IRRIGATION_ADJUSTMENT -> R.string.action_irrigation_adjustment
-        CorrectiveActionType.DRAINAGE_IMPROVEMENT -> R.string.action_drainage_improvement
-        CorrectiveActionType.SOIL_AMENDMENT -> R.string.action_soil_amendment
-        CorrectiveActionType.CROP_ROTATION -> R.string.action_crop_rotation
-    },
-)
-
-@Composable
 private fun Gutter(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Box(modifier.padding(horizontal = SerenaGutter)) { content() }
 }
@@ -304,6 +295,7 @@ private fun AlertCard(alert: Alert, canWrite: Boolean, onAcknowledge: () -> Unit
                 modifier = Modifier.padding(start = 4.dp),
             )
         }
+        alert.contingency?.let { ContingencyStatus(it, modifier = Modifier.padding(top = 12.dp)) }
         // El asesor solo consulta: reconocer y registrar acciones es del productor.
         if (canWrite && alert.acknowledged) {
             OutlinedButton(

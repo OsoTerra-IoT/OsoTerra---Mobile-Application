@@ -69,6 +69,8 @@ Los endpoints que usa la app están en [`docs/API-CONTRACT.md`](docs/API-CONTRAC
 
 El enlace «Modo de prueba» del login activa escenarios en memoria sin Backend.
 
+Los escenarios 7 y 8 muestran la contingencia de salinidad del dispositivo (lavado automático con bomba) como si estuviera integrada: usan solo datos de prueba en memoria y el Backend real aún no envía este dato.
+
 ## Pendiente
 
 - Notificaciones push con FCM.

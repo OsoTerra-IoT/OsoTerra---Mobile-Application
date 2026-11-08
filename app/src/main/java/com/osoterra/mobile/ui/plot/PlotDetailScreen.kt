@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.ContingencyStatus
 import com.osoterra.mobile.ui.common.rememberCanWrite
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Crop
@@ -192,6 +193,7 @@ fun PlotDetailScreen(
                         DetailPhase.CONTENT -> if (plot != null) {
                             StaggeredEntrance(0) { StatusHero(plot, state.readings.takeLast(30).map { it.ecDsPerM }) }
                             StaggeredEntrance(1) { Facts(plot, state.readings.lastOrNull()) }
+                            plot.contingency?.let { StaggeredEntrance(1) { ContingencyStatus(it) } }
                             StaggeredEntrance(2) {
                                 if (state.readingsError != null) {
                                     ErrorCard(state.readingsError!!, onRetry = viewModel::load)

@@ -293,6 +293,10 @@ Protege tu cosecha.</string>
     <string name="demo_scenario_5_desc">Asesor. Dos clientes con 30 días de lecturas; una parcela empeora.</string>
     <string name="demo_scenario_6_title">Asesor con alertas</string>
     <string name="demo_scenario_6_desc">Asesor. Lo del escenario 5 y alertas Alto y Muy alto sin atender.</string>
+    <string name="demo_scenario_7_title">Lavado automático</string>
+    <string name="demo_scenario_7_desc">Productor. Salinidad crítica con lavado automático: 2 de 3 lavados con la bomba y la ECe baja a En vigilancia. Alerta aún abierta.</string>
+    <string name="demo_scenario_8_title">Lavados agotados</string>
+    <string name="demo_scenario_8_desc">Productor. Se agotaron los 3 lavados y la salinidad sigue Muy alta: alerta abierta, una persona debe actuar.</string>
 
     <!-- Solicitudes de asesoría (productor) -->
     <string name="advisory_request_title">Solicitud de asesoría</string>
@@ -351,4 +355,16 @@ Protege tu cosecha.</string>
     <string name="profile_section_field">Mi campo</string>
     <string name="profile_section_account">Mi cuenta</string>
     <string name="detail_trend_title">Últimos 30 días</string>
+
+    <!-- Contingencia de salinidad: lavado automático con bomba del dispositivo -->
+    <string name="contingency_tag">Lavado automático</string>
+    <string name="contingency_title">Contingencia del dispositivo</string>
+    <string name="contingency_state_active">Activa</string>
+    <string name="contingency_state_exhausted">Lavados agotados</string>
+    <string name="contingency_flushes_used">Lavados usados: %1$d/%2$d</string>
+    <string name="contingency_flush_action">Lavado automático con bomba %1$d/%2$d, %3$d s</string>
+    <string name="contingency_actions_heading">Acciones del dispositivo</string>
+    <string name="contingency_active_hint">El dispositivo lava el suelo con agua dulce y espera 30 minutos entre lavados.</string>
+    <string name="contingency_exhausted_note">Aviso del dispositivo: se usaron los %1$d lavados y la salinidad sigue muy alta. Una persona debe actuar.</string>
+    <string name="contingency_cd">Contingencia %1$s. Lavados usados %2$d de %3$d.</string>
 </resources>

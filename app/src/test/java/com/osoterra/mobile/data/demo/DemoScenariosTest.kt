@@ -1,8 +1,12 @@
 package com.osoterra.mobile.data.demo
 
 import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.data.remote.salinityLevel
 import com.osoterra.mobile.domain.model.AlertSeverity
+import com.osoterra.mobile.domain.model.ContingencyState
+import com.osoterra.mobile.domain.model.CorrectiveActionType
 import com.osoterra.mobile.domain.model.NotificationPreferences
+import com.osoterra.mobile.domain.model.SalinityContingency
 import com.osoterra.mobile.domain.model.SalinityLevel
 import com.osoterra.mobile.domain.model.UserRole
 import kotlinx.coroutines.test.runTest
@@ -26,14 +30,18 @@ class DemoScenariosTest {
     }
 
     @Test
-    fun `there are six numbered scenarios with their role`() {
-        assertEquals((1..6).toList(), DemoScenario.entries.map { it.number })
+    fun `there are eight numbered scenarios with their role`() {
+        assertEquals((1..8).toList(), DemoScenario.entries.map { it.number })
         assertEquals(
-            listOf(UserRole.PRODUCER, UserRole.PRODUCER, UserRole.PRODUCER, UserRole.PRODUCER, UserRole.ADVISOR, UserRole.ADVISOR),
+            listOf(
+                UserRole.PRODUCER, UserRole.PRODUCER, UserRole.PRODUCER, UserRole.PRODUCER,
+                UserRole.ADVISOR, UserRole.ADVISOR, UserRole.PRODUCER, UserRole.PRODUCER,
+            ),
             DemoScenario.entries.map { build(it).user.role },
         )
         assertEquals(DemoScenario.ADVISOR_ALERTS, DemoScenario.fromNumber(6))
-        assertEquals(null, DemoScenario.fromNumber(7))
+        assertEquals(DemoScenario.CONTINGENCY_EXHAUSTED, DemoScenario.fromNumber(8))
+        assertEquals(null, DemoScenario.fromNumber(9))
     }
 
     @Test
@@ -107,7 +115,8 @@ class DemoScenariosTest {
     @Test
     fun `every alert matches the level of its plot and the last reading is the current value`() {
         DemoScenario.entries.map(::build).forEach { s ->
-            s.alerts.forEach { alert ->
+            // La alerta de una contingencia recuerda el momento en que se abrió, no la lectura actual.
+            s.alerts.filter { it.contingency == null }.forEach { alert ->
                 val plot = s.plots.single { it.id == alert.plotId }
                 assertEquals(plot.salinityLevel.matching(), alert.severity)
                 assertEquals(plot.lastEcDsPerM!!, alert.observedDsPerM!!, 1e-9)
@@ -162,5 +171,107 @@ class DemoScenariosTest {
         val request = (links.getPendingRequests() as DataResult.Success).data.single()
         links.accept(request.id)
         assertTrue((links.getPendingRequests() as DataResult.Success).data.isEmpty())
+    }
+
+    // --- Contingencia de salinidad (escenarios 7 y 8) ---------------------------------------
+
+    private val iso = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+
+    private fun levelOf(ec: Double, threshold: Double) = salinityLevel(ec, threshold)
+
+    @Test
+    fun `scenario 7 flushes twice and the readings fall from Critical to Watch`() {
+        val s = build(DemoScenario.CONTINGENCY_FLUSHING)
+        val plot = s.plots.single { it.contingency != null }
+        val threshold = plot.crop!!.thresholdDsPerM
+        val contingency = plot.contingency!!
+        assertEquals(ContingencyState.ACTIVE, contingency.state)
+        assertEquals(2, contingency.flushesUsed)
+        assertEquals(1, contingency.flushesLeft)
+        assertFalse(contingency.needsPerson)
+        assertEquals(SalinityLevel.WATCH, plot.salinityLevel)
+
+        val levels = s.readings.getValue(plot.id).map { levelOf(it.ecDsPerM, threshold) }
+        assertTrue(levels.contains(SalinityLevel.CRITICAL))
+        assertEquals(SalinityLevel.WATCH, levels.last())
+        // Después del último Crítico ya no vuelve a subir.
+        assertTrue(levels.drop(levels.lastIndexOf(SalinityLevel.CRITICAL) + 1).none { it == SalinityLevel.CRITICAL })
+
+        val alert = s.alerts.single()
+        assertEquals(AlertSeverity.CRITICAL, alert.severity)
+        assertFalse(alert.acknowledged)
+        assertEquals(contingency, alert.contingency)
+    }
+
+    @Test
+    fun `scenario 8 has no flushes left, stays Critical and asks for a person`() {
+        val s = build(DemoScenario.CONTINGENCY_EXHAUSTED)
+        val plot = s.plots.single { it.contingency != null }
+        val contingency = plot.contingency!!
+        assertEquals(ContingencyState.EXHAUSTED, contingency.state)
+        assertEquals(3, contingency.flushesUsed)
+        assertEquals(0, contingency.flushesLeft)
+        assertTrue(contingency.needsPerson)
+        assertEquals(SalinityLevel.CRITICAL, plot.salinityLevel)
+        val alert = s.alerts.single()
+        assertEquals(AlertSeverity.CRITICAL, alert.severity)
+        assertFalse(alert.acknowledged)
+        assertEquals(plot.lastEcDsPerM!!, alert.observedDsPerM!!, 1e-9)
+    }
+
+    @Test
+    fun `device actions are automatic flushes of 60 seconds, numbered and spaced by at least 30 minutes`() {
+        listOf(DemoScenario.CONTINGENCY_FLUSHING, DemoScenario.CONTINGENCY_EXHAUSTED).forEach { scenario ->
+            val contingency = build(scenario).alerts.single().contingency!!
+            assertEquals(contingency.flushesUsed, contingency.actions.size)
+            assertTrue(contingency.actions.all { it.isAutomatic && it.type == CorrectiveActionType.LEACHING })
+            assertEquals((1..contingency.flushesUsed).toList(), contingency.automaticActions.map { it.flushNumber })
+            assertTrue(contingency.automaticActions.all { it.flushMax == 3 && it.durationSeconds == 60 })
+            assertTrue(contingency.personActions.isEmpty())
+            assertTrue(contingency.flushesUsed <= contingency.maxFlushes)
+            val times = contingency.actions.map { iso.parse(it.performedAt)!!.time }
+            times.zipWithNext().forEach { (a, b) -> assertTrue(b - a >= 30 * 60 * 1000L) }
+        }
+    }
+
+    @Test
+    fun `the first flush comes after two consecutive Critical readings`() {
+        listOf(DemoScenario.CONTINGENCY_FLUSHING, DemoScenario.CONTINGENCY_EXHAUSTED).forEach { scenario ->
+            val s = build(scenario)
+            val plot = s.plots.single { it.contingency != null }
+            val firstFlush = iso.parse(plot.contingency!!.actions.first().performedAt)!!.time
+            val before = s.readings.getValue(plot.id)
+                .filter { iso.parse(it.capturedAt!!)!!.time < firstFlush }
+                .takeLast(2)
+            assertEquals(2, before.size)
+            assertTrue(before.all { levelOf(it.ecDsPerM, plot.crop!!.thresholdDsPerM) == SalinityLevel.CRITICAL })
+        }
+    }
+
+    @Test
+    fun `contingency dates are shown in the app language, not as ISO`() = runTest {
+        val store = DemoStore(now = { now }).apply { load(DemoScenario.CONTINGENCY_FLUSHING) }
+        val alert = (DemoAlertRepository(store).getAlerts() as DataResult.Success).data.single()
+        assertTrue(alert.contingency!!.actions.none { it.performedAt.contains('T') })
+        val plot = (DemoPlotRepository(store).getPlot("demo-p-algarrobo") as DataResult.Success).data
+        assertTrue(plot.contingency!!.actions.none { it.performedAt.contains('T') })
+    }
+
+    @Test
+    fun `scenarios without a contingency carry none`() {
+        DemoScenario.entries
+            .filter { it != DemoScenario.CONTINGENCY_FLUSHING && it != DemoScenario.CONTINGENCY_EXHAUSTED }
+            .forEach { scenario ->
+                val s = build(scenario)
+                assertTrue(s.plots.all { it.contingency == null })
+                assertTrue(s.alerts.all { it.contingency == null })
+            }
+    }
+
+    @Test
+    fun `contingency counters never go below zero`() {
+        val over = SalinityContingency(ContingencyState.EXHAUSTED, flushesUsed = 5)
+        assertEquals(0, over.flushesLeft)
+        assertEquals(2, SalinityContingency(ContingencyState.ACTIVE, flushesUsed = 1).flushesLeft)
     }
 }

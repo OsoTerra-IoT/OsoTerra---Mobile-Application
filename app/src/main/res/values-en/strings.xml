@@ -280,6 +280,10 @@ Protect your harvest.</string>
     <string name="demo_scenario_5_desc">Advisor. Two clients with 30 days of readings; one plot is getting worse.</string>
     <string name="demo_scenario_6_title">Advisor with alerts</string>
     <string name="demo_scenario_6_desc">Advisor. Scenario 5 plus High and Critical alerts not yet handled.</string>
+    <string name="demo_scenario_7_title">Automatic flush</string>
+    <string name="demo_scenario_7_desc">Farmer. Critical salinity with automatic flushing: 2 of 3 pump flushes and the EC drops to Watch. Alert still open.</string>
+    <string name="demo_scenario_8_title">Flushes used up</string>
+    <string name="demo_scenario_8_desc">Farmer. All 3 flushes used and salinity is still Critical: open alert, a person must act.</string>
 
     <!-- Advisory requests (farmer) -->
     <string name="advisory_request_title">Advisory request</string>
@@ -335,4 +339,16 @@ Protect your harvest.</string>
     <string name="profile_section_field">My field</string>
     <string name="profile_section_account">My account</string>
     <string name="detail_trend_title">Last 30 days</string>
+
+    <!-- Salinity contingency: automatic flushing with the device pump -->
+    <string name="contingency_tag">Automatic flush</string>
+    <string name="contingency_title">Device contingency</string>
+    <string name="contingency_state_active">Active</string>
+    <string name="contingency_state_exhausted">Flushes used up</string>
+    <string name="contingency_flushes_used">Flushes used: %1$d/%2$d</string>
+    <string name="contingency_flush_action">Automatic flush with pump %1$d/%2$d, %3$d s</string>
+    <string name="contingency_actions_heading">Device actions</string>
+    <string name="contingency_active_hint">The device flushes the soil with fresh water and waits 30 minutes between flushes.</string>
+    <string name="contingency_exhausted_note">Device notice: all %1$d flushes were used and salinity is still very high. A person must act.</string>
+    <string name="contingency_cd">Contingency %1$s. Flushes used %2$d of %3$d.</string>
 </resources>
