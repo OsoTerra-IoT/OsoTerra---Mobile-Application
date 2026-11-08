@@ -96,13 +96,20 @@ class CreatePlotViewModel(
             when (val result = plotRepository.createPlot(newPlot)) {
                 is DataResult.Success -> _uiState.update { it.copy(isSaving = false, success = true) }
                 is DataResult.Error -> _uiState.update {
-                    it.copy(isSaving = false, errorMessage = result.message)
+                    // El único 409 al crear una parcela es el límite de parcelas del plan.
+                    if (result.httpCode == HTTP_CONFLICT) {
+                        it.copy(isSaving = false, errorRes = R.string.plot_limit_reached)
+                    } else {
+                        it.copy(isSaving = false, errorMessage = result.message)
+                    }
                 }
             }
         }
     }
 
     companion object {
+        const val HTTP_CONFLICT = 409
+
         fun provideFactory(container: AppContainer) = viewModelFactory {
             initializer { CreatePlotViewModel(container.plotRepository, container.farmRepository) }
         }

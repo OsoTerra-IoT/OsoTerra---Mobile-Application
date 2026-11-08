@@ -80,6 +80,7 @@
     <string name="plot_crop_none">No crop</string>
     <string name="plot_save">Save plot</string>
     <string name="plot_area_error">The area must be greater than zero</string>
+    <string name="plot_limit_reached">You cannot create more plots: you reached your plan limit. Change your plan in “My subscription” or deactivate a plot.</string>
     <string name="plot_select_farm">Select a farm</string>
     <string name="plot_need_farm">Register a farm first</string>
     <string name="plot_deactivate">Deactivate plot</string>

@@ -84,6 +84,7 @@
     <string name="plot_crop_none">Sin cultivo</string>
     <string name="plot_save">Guardar parcela</string>
     <string name="plot_area_error">La superficie debe ser mayor a cero</string>
+    <string name="plot_limit_reached">No puedes crear más parcelas: alcanzaste el límite de tu plan. Cambia de plan en «Mi suscripción» o da de baja una parcela.</string>
     <string name="plot_select_farm">Selecciona una finca</string>
     <string name="plot_need_farm">Primero registra una finca</string>
     <string name="plot_deactivate">Dar de baja la parcela</string>
