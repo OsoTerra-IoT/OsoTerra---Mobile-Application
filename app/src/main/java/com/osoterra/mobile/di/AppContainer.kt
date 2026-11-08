@@ -36,6 +36,8 @@ import com.osoterra.mobile.data.repository.FarmRepositoryMock
 import com.osoterra.mobile.data.repository.NotificationPreferencesStore
 import com.osoterra.mobile.data.repository.PlotRepositoryMock
 import com.osoterra.mobile.data.repository.SessionStore
+import com.osoterra.mobile.data.repository.InMemorySubscriptions
+import com.osoterra.mobile.data.repository.SubscriptionPlans
 import com.osoterra.mobile.data.repository.SubscriptionRepositoryMock
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.repository.AdvisorRepository
@@ -114,13 +116,18 @@ class AppContainer(context: Context) {
         if (usesFakeApi) {
             val farms = FarmRepositoryMock()
             val plots = PlotRepositoryMock(farms)
+            val subscriptions = InMemorySubscriptions(
+                initialPlanId = SubscriptionPlans.basic.id,
+                plotsUsed = { plots.count },
+            )
+            plots.plotLimit = { subscriptions.plotLimit() }
             RepositorySet(
                 auth = AuthRepositoryMock(sessionStore, onSession),
                 farm = farms,
                 plot = plots,
                 alert = AlertRepositoryMock(),
                 device = DeviceRepositoryMock(plots),
-                subscription = SubscriptionRepositoryMock(),
+                subscription = SubscriptionRepositoryMock(subscriptions),
                 advisor = AdvisorRepositoryMock(),
                 notificationPreferences = NotificationPreferencesStore(appContext),
                 advisoryLinks = AdvisoryLinkRepositoryMock(),

@@ -30,7 +30,7 @@ private val errorJson = Json { ignoreUnknownKeys = true }
 suspend fun <T> apiCall(block: suspend () -> T): DataResult<T> = try {
     DataResult.Success(block())
 } catch (error: HttpException) {
-    DataResult.Error(httpMessage(error), error)
+    DataResult.Error(httpMessage(error), error, error.code())
 } catch (error: IOException) {
     DataResult.Error("No se pudo conectar con el servidor. Revisa tu conexión.", error)
 } catch (error: IllegalStateException) {

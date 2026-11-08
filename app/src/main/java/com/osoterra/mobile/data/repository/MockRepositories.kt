@@ -111,6 +111,12 @@ class PlotRepositoryMock(
         .map { it.copy(salinityLevel = salinityLevel(it.lastEcDsPerM, it.crop?.thresholdDsPerM)) }
         .toMutableList()
 
+    /** Parcelas activas, para el uso del plan en la suscripción mock. */
+    val count: Int get() = plots.size
+
+    /** Límite de parcelas del plan activo; null si no hay uno. Lo conecta el contenedor. */
+    var plotLimit: () -> Int? = { null }
+
     override suspend fun getPlots(): DataResult<List<Plot>> {
         delay(500.milliseconds)
         return DataResult.Success(plots.toList())
@@ -132,6 +138,10 @@ class PlotRepositoryMock(
         delay(500.milliseconds)
         if (plot.name.isBlank()) return DataResult.Error("El nombre de la parcela es obligatorio")
         if (plot.areaHectares <= 0.0) return DataResult.Error("La superficie debe ser mayor a cero")
+        val limit = plotLimit()
+        if (limit != null && plots.size >= limit) {
+            return DataResult.Error("El plan permite $limit parcelas activas", httpCode = 409)
+        }
         val crop = plot.cropId?.let { id -> MockData.crops.firstOrNull { it.id == id } }
         val created = Plot(
             id = "p-${UUID.randomUUID()}",
