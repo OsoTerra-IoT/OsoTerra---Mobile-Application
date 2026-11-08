@@ -56,6 +56,8 @@ data class Plot(
 
     val lastReadingAt: String?,
     val deviceOnline: Boolean,
+    /** Contingencia de lavado del dispositivo; null si no hay datos (el Backend aún no la envía). */
+    val contingency: SalinityContingency? = null,
 )
 
 data class Reading(
@@ -95,4 +97,6 @@ data class Alert(
     /** Datos con los que la pantalla arma el mensaje en el idioma de la app. */
     val observedDsPerM: Double? = null,
     val thresholdDsPerM: Double? = null,
+    /** Contingencia de lavado asociada a la alerta, si el dispositivo la activó. */
+    val contingency: SalinityContingency? = null,
 )
