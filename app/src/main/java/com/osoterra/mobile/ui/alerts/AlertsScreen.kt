@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.rememberCanWrite
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Alert
 import com.osoterra.mobile.domain.model.CorrectiveActionType
@@ -106,6 +107,7 @@ fun AlertsScreen(onPendingCount: (Int) -> Unit = {}) {
     val container = rememberAppContainer()
     val viewModel: AlertsViewModel = viewModel(factory = AlertsViewModel.provideFactory(container))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val canWrite = rememberCanWrite()
     val snackbar = remember { SnackbarHostState() }
     val savedMessage = stringResource(R.string.action_saved)
     val acknowledgedMessage = stringResource(R.string.alerts_acknowledged_notice)
@@ -184,6 +186,7 @@ fun AlertsScreen(onPendingCount: (Int) -> Unit = {}) {
                                 StaggeredEntrance(index) {
                                     AlertCard(
                                         alert = alert,
+                                        canWrite = canWrite,
                                         onAcknowledge = { viewModel.acknowledge(alert.id) },
                                         onRecordAction = { viewModel.openAction(alert) },
                                     )
@@ -200,6 +203,7 @@ fun AlertsScreen(onPendingCount: (Int) -> Unit = {}) {
                                 StaggeredEntrance(pending.size + index) {
                                     AlertCard(
                                         alert = alert,
+                                        canWrite = canWrite,
                                         onAcknowledge = { viewModel.acknowledge(alert.id) },
                                         onRecordAction = { viewModel.openAction(alert) },
                                     )
@@ -255,7 +259,7 @@ private fun Gutter(modifier: Modifier = Modifier, content: @Composable () -> Uni
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: () -> Unit) {
+private fun AlertCard(alert: Alert, canWrite: Boolean, onAcknowledge: () -> Unit, onRecordAction: () -> Unit) {
     val reducedMotion = rememberReducedMotion()
     val alpha by animateFloatAsState(
         if (alert.acknowledged) 0.8f else 1f,
@@ -300,7 +304,8 @@ private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: (
                 modifier = Modifier.padding(start = 4.dp),
             )
         }
-        if (alert.acknowledged) {
+        // El asesor solo consulta: reconocer y registrar acciones es del productor.
+        if (canWrite && alert.acknowledged) {
             OutlinedButton(
                 onClick = onRecordAction,
                 shape = RoundedCornerShape(50),
@@ -309,7 +314,7 @@ private fun AlertCard(alert: Alert, onAcknowledge: () -> Unit, onRecordAction: (
                     .padding(top = 16.dp)
                     .heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.alerts_record_action), color = Emerald700) }
-        } else {
+        } else if (canWrite) {
             ArrowButton(
                 text = stringResource(R.string.alerts_record_action),
                 onClick = onRecordAction,

@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.rememberCanWrite
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Plot
@@ -115,6 +116,7 @@ fun PlotDetailScreen(
     var menuExpanded by remember { mutableStateOf(false) }
     var showCropDialog by remember { mutableStateOf(false) }
     var showDeactivateDialog by remember { mutableStateOf(false) }
+    val canWrite = rememberCanWrite()
 
     LaunchedEffect(state.deactivated) {
         if (state.deactivated) onBack()
@@ -128,7 +130,7 @@ fun PlotDetailScreen(
                 title = state.plot?.name.orEmpty(),
                 onBack = onBack,
                 actions = {
-                    if (state.plot != null) {
+                    if (state.plot != null && canWrite) {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.detail_more))
                         }

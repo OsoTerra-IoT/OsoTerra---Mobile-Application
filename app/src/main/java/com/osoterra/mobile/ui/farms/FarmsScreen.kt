@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.rememberCanWrite
 import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Farm
@@ -61,6 +62,7 @@ fun FarmsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     var showDialog by remember { mutableStateOf(false) }
+    val canWrite = rememberCanWrite()
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -68,14 +70,16 @@ fun FarmsScreen(
             SerenaTopBar(title = stringResource(R.string.farms_title), onBack = onBack)
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showDialog = true },
-                shape = RoundedCornerShape(50),
-                containerColor = Emerald700,
-                contentColor = White,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.farms_new)) },
-            )
+            if (canWrite) {
+                ExtendedFloatingActionButton(
+                    onClick = { showDialog = true },
+                    shape = RoundedCornerShape(50),
+                    containerColor = Emerald700,
+                    contentColor = White,
+                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.farms_new)) },
+                )
+            }
         },
     ) { padding ->
         Box(
