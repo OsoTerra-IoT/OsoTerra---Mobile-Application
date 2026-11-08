@@ -155,6 +155,12 @@ private fun shortDate(month: Int, day: Int, locale: Locale): String {
 fun isoDateOrToday(date: String): String =
     date.takeIf { ISO_DATE.matches(it) } ?: SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
+/** Nombre que el Backend guarda cuando la persona no escribe el laboratorio. */
+const val DEFAULT_LABORATORY = "Laboratorio de referencia"
+
+/** El laboratorio escrito, sin espacios sobrantes; si queda vacío, el predeterminado. */
+fun laboratoryNameOrDefault(name: String): String = name.trim().ifBlank { DEFAULT_LABORATORY }
+
 /** Separa el nombre completo del registro en nombres y apellidos, como los pide el API. */
 fun splitFullName(fullName: String): Pair<String, String> {
     val parts = fullName.trim().split(Regex("\\s+"))

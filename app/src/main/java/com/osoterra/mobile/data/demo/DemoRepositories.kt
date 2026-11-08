@@ -262,7 +262,12 @@ class DemoDeviceRepository(private val store: DemoStore) : DeviceRepository {
         return DataResult.Success(calibrations[deviceId]?.toList().orEmpty())
     }
 
-    override suspend fun registerCalibration(deviceId: String, referenceValueDsPerM: Double, date: String): DataResult<Calibration> {
+    override suspend fun registerCalibration(
+        deviceId: String,
+        referenceValueDsPerM: Double,
+        laboratoryName: String,
+        date: String,
+    ): DataResult<Calibration> {
         pause()
         if (referenceValueDsPerM <= 0.0) return DataResult.Error("El valor de referencia debe ser mayor a cero")
         val sensorEc = store.snapshot?.let { s ->

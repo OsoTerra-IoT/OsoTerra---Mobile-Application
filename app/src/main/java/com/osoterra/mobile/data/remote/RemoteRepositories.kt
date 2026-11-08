@@ -325,6 +325,7 @@ class DeviceRepositoryRemote(
     override suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        laboratoryName: String,
         date: String,
     ): DataResult<Calibration> {
         if (referenceValueDsPerM <= 0.0) return DataResult.Error("El valor de referencia debe ser mayor a cero")
@@ -339,7 +340,7 @@ class DeviceRepositoryRemote(
                     deviceId = deviceId.toLong(),
                     labConductivityDsM = referenceValueDsPerM,
                     samplingDate = isoDateOrToday(date),
-                    laboratoryName = "Laboratorio de referencia",
+                    laboratoryName = laboratoryNameOrDefault(laboratoryName),
                     deviceReadingAtSampling = sensorValue,
                 ),
             )

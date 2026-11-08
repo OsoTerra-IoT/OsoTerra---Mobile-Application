@@ -76,11 +76,17 @@ class DevicesViewModel(
         }
     }
 
-    fun registerCalibration(deviceId: String, referenceValue: Double, date: String, onDone: () -> Unit) {
+    fun registerCalibration(
+        deviceId: String,
+        referenceValue: Double,
+        laboratoryName: String,
+        date: String,
+        onDone: () -> Unit,
+    ) {
         if (_uiState.value.isSaving) return
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            when (val result = deviceRepository.registerCalibration(deviceId, referenceValue, date)) {
+            when (val result = deviceRepository.registerCalibration(deviceId, referenceValue, laboratoryName, date)) {
                 is DataResult.Success -> {
                     _uiState.update { it.copy(isSaving = false) }
                     load()

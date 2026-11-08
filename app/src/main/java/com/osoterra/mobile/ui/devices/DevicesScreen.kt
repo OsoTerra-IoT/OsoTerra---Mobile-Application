@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.rememberCanWrite
 import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Calibration
@@ -103,6 +104,7 @@ fun DevicesScreen(
 
     var showRegister by remember { mutableStateOf(false) }
     var calibrateDevice by remember { mutableStateOf<Device?>(null) }
+    val canWrite = rememberCanWrite()
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -110,14 +112,16 @@ fun DevicesScreen(
             SerenaTopBar(title = stringResource(R.string.devices_title), onBack = onBack)
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showRegister = true },
-                shape = RoundedCornerShape(50),
-                containerColor = Emerald700,
-                contentColor = White,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.device_register)) },
-            )
+            if (canWrite) {
+                ExtendedFloatingActionButton(
+                    onClick = { showRegister = true },
+                    shape = RoundedCornerShape(50),
+                    containerColor = Emerald700,
+                    contentColor = White,
+                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.device_register)) },
+                )
+            }
         },
     ) { padding ->
         Box(
@@ -145,7 +149,7 @@ fun DevicesScreen(
                         DeviceCard(
                             device = device,
                             lastCalibration = state.calibrationsByDevice[device.id]?.firstOrNull(),
-                            onCalibrate = { calibrateDevice = device },
+                            onCalibrate = if (canWrite) ({ calibrateDevice = device }) else null,
                         )
                     }
                 }
@@ -171,15 +175,15 @@ fun DevicesScreen(
             isSaving = state.isSaving,
             errorMessage = state.errorMessage,
             onDismiss = { calibrateDevice = null },
-            onConfirm = { value, date ->
-                viewModel.registerCalibration(device.id, value, date) { calibrateDevice = null }
+            onConfirm = { value, laboratory, date ->
+                viewModel.registerCalibration(device.id, value, laboratory, date) { calibrateDevice = null }
             },
         )
     }
 }
 
 @Composable
-private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrate: () -> Unit) {
+private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrate: (() -> Unit)?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -244,14 +248,16 @@ private fun DeviceCard(device: Device, lastCalibration: Calibration?, onCalibrat
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
-            OutlinedButton(
-                onClick = onCalibrate,
-                shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, Emerald700),
-                modifier = Modifier.heightIn(min = 48.dp),
-            ) {
-                Text(stringResource(R.string.device_calibrate), color = Emerald700)
+            if (onCalibrate != null) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onCalibrate,
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, Emerald700),
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(stringResource(R.string.device_calibrate), color = Emerald700)
+                }
             }
         }
     }
@@ -345,9 +351,11 @@ private fun CalibrationDialog(
     isSaving: Boolean,
     errorMessage: String?,
     onDismiss: () -> Unit,
-    onConfirm: (referenceValue: Double, date: String) -> Unit,
+    onConfirm: (referenceValue: Double, laboratoryName: String, date: String) -> Unit,
 ) {
+    val defaultLaboratory = stringResource(R.string.device_default_laboratory)
     var value by remember { mutableStateOf("") }
+    var laboratory by remember { mutableStateOf(defaultLaboratory) }
     // Hoy en YYYY-MM-DD sin java.time, que exige API 26 y la app admite desde API 24.
     var date by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) }
 
@@ -368,6 +376,14 @@ private fun CalibrationDialog(
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
+                    value = laboratory,
+                    onValueChange = { laboratory = it },
+                    label = { Text(stringResource(R.string.device_laboratory)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
                     value = date,
                     onValueChange = { date = it },
                     label = { Text(stringResource(R.string.device_sample_date)) },
@@ -384,7 +400,7 @@ private fun CalibrationDialog(
             TextButton(
                 onClick = {
                     val v = value.replace(",", ".").toDoubleOrNull()
-                    if (v != null) onConfirm(v, date)
+                    if (v != null) onConfirm(v, laboratory, date)
                 },
                 enabled = !isSaving && value.isNotBlank(),
             ) { Text(stringResource(R.string.common_confirm)) }
