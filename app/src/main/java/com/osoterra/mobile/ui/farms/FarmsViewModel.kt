@@ -19,6 +19,8 @@ data class FarmsUiState(
     val farms: List<Farm> = emptyList(),
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
+    /** La lista de fincas no se pudo cargar: se distingue de «sin fincas». */
+    val loadError: String? = null,
 )
 
 class FarmsViewModel(
@@ -33,11 +35,11 @@ class FarmsViewModel(
     }
 
     fun load() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, loadError = null) }
         viewModelScope.launch {
             when (val result = farmRepository.getFarms()) {
                 is DataResult.Success -> _uiState.update { it.copy(isLoading = false, farms = result.data) }
-                is DataResult.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                is DataResult.Error -> _uiState.update { it.copy(isLoading = false, loadError = result.message) }
             }
         }
     }

@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 data class CropCatalogUiState(
     val isLoading: Boolean = true,
     val crops: List<Crop> = emptyList(),
+    val errorMessage: String? = null,
 )
 
 class CropCatalogViewModel(
@@ -27,9 +28,16 @@ class CropCatalogViewModel(
     val uiState: StateFlow<CropCatalogUiState> = _uiState.asStateFlow()
 
     init {
+        load()
+    }
+
+    fun load() {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            val crops = (plotRepository.getCrops() as? DataResult.Success)?.data ?: emptyList()
-            _uiState.update { it.copy(isLoading = false, crops = crops) }
+            when (val result = plotRepository.getCrops()) {
+                is DataResult.Success -> _uiState.update { it.copy(isLoading = false, crops = result.data) }
+                is DataResult.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+            }
         }
     }
 

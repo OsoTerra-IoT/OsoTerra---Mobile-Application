@@ -22,6 +22,8 @@ data class PlotSeries(
 data class AdvisorCompareUiState(
     val isLoading: Boolean = true,
     val series: List<PlotSeries> = emptyList(),
+    /** Mensaje del primer fallo al traer las lecturas; null si todas llegaron. */
+    val errorMessage: String? = null,
 )
 
 class AdvisorCompareViewModel(
@@ -36,17 +38,22 @@ class AdvisorCompareViewModel(
         load()
     }
 
-    private fun load() {
-        _uiState.update { it.copy(isLoading = true) }
+    fun load() {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
             val names = (advisorRepository.getSupervisedPlots() as? DataResult.Success)?.data
                 ?.associate { it.id to it.plotName } ?: emptyMap()
+            var firstError: String? = null
             val series = plotIds.mapNotNull { id ->
-                val readings = (advisorRepository.getSeries(id) as? DataResult.Success)?.data
-                    ?: return@mapNotNull null
-                PlotSeries(plotName = names[id] ?: id, readings = readings)
+                when (val result = advisorRepository.getSeries(id)) {
+                    is DataResult.Success -> PlotSeries(plotName = names[id] ?: id, readings = result.data)
+                    is DataResult.Error -> {
+                        if (firstError == null) firstError = result.message
+                        null
+                    }
+                }
             }
-            _uiState.update { it.copy(isLoading = false, series = series) }
+            _uiState.update { it.copy(isLoading = false, series = series, errorMessage = firstError) }
         }
     }
 

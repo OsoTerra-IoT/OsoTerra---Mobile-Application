@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.osoterra.mobile.R
+import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.di.rememberAppContainer
 import com.osoterra.mobile.domain.model.Farm
 
@@ -84,6 +85,11 @@ fun FarmsScreen(
         ) {
             when {
                 state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                state.loadError != null -> ErrorCard(
+                    state.loadError!!,
+                    onRetry = viewModel::load,
+                    modifier = Modifier.padding(20.dp),
+                )
                 state.farms.isEmpty() -> Text(
                     stringResource(R.string.farms_empty),
                     style = MaterialTheme.typography.bodyLarge,

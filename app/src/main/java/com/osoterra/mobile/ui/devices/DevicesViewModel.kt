@@ -24,6 +24,8 @@ data class DevicesUiState(
     val calibrationsByDevice: Map<String, List<Calibration>> = emptyMap(),
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
+    /** La lista de dispositivos no se pudo cargar (red, 403…): se distingue de «sin dispositivos». */
+    val loadError: String? = null,
 )
 
 class DevicesViewModel(
@@ -39,9 +41,14 @@ class DevicesViewModel(
     }
 
     fun load() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, loadError = null) }
         viewModelScope.launch {
-            val devices = (deviceRepository.getDevices() as? DataResult.Success)?.data ?: emptyList()
+            val devicesResult = deviceRepository.getDevices()
+            if (devicesResult is DataResult.Error) {
+                _uiState.update { it.copy(isLoading = false, loadError = devicesResult.message) }
+                return@launch
+            }
+            val devices = (devicesResult as DataResult.Success).data
             val plots = (plotRepository.getPlots() as? DataResult.Success)?.data ?: emptyList()
             val calibs = devices.associate { device ->
                 device.id to ((deviceRepository.getCalibrations(device.id) as? DataResult.Success)?.data ?: emptyList())

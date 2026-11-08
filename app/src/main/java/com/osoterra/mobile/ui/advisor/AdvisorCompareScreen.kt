@@ -1,6 +1,7 @@
 package com.osoterra.mobile.ui.advisor
 
 import androidx.compose.foundation.layout.WindowInsets
+import com.osoterra.mobile.ui.common.ErrorCard
 import com.osoterra.mobile.ui.common.SerenaTopBar
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -72,6 +73,12 @@ fun AdvisorCompareScreen(
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
+            } else if (state.errorMessage != null && state.series.isEmpty()) {
+                ErrorCard(
+                    state.errorMessage!!,
+                    onRetry = viewModel::load,
+                    modifier = Modifier.padding(20.dp),
+                )
             } else {
                 Column(Modifier.padding(20.dp)) {
                     Text(

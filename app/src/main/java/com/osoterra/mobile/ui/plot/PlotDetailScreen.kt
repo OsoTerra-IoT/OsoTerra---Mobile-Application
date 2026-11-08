@@ -190,7 +190,13 @@ fun PlotDetailScreen(
                         DetailPhase.CONTENT -> if (plot != null) {
                             StaggeredEntrance(0) { StatusHero(plot, state.readings.takeLast(30).map { it.ecDsPerM }) }
                             StaggeredEntrance(1) { Facts(plot, state.readings.lastOrNull()) }
-                            StaggeredEntrance(2) { History(plot.crop, state.readings) }
+                            StaggeredEntrance(2) {
+                                if (state.readingsError != null) {
+                                    ErrorCard(state.readingsError!!, onRetry = viewModel::load)
+                                } else {
+                                    History(plot.crop, state.readings)
+                                }
+                            }
                         }
                     }
                 }

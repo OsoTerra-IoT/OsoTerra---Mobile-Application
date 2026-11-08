@@ -23,6 +23,8 @@ data class PlotDetailUiState(
     val crops: List<Crop> = emptyList(),
     val deactivated: Boolean = false,
     val errorMessage: String? = null,
+    /** El histórico no se pudo cargar aunque la parcela sí: no se muestra como «sin lecturas». */
+    val readingsError: String? = null,
 )
 
 class PlotDetailViewModel(
@@ -38,7 +40,7 @@ class PlotDetailViewModel(
     }
 
     fun load() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, readingsError = null) }
         viewModelScope.launch {
             val plotResult = plotRepository.getPlot(plotId)
             val readingsResult = plotRepository.getReadings(plotId)
@@ -52,7 +54,13 @@ class PlotDetailViewModel(
                 }
             } else {
                 _uiState.update {
-                    it.copy(isLoading = false, plot = plot, readings = readings, crops = crops)
+                    it.copy(
+                        isLoading = false,
+                        plot = plot,
+                        readings = readings,
+                        crops = crops,
+                        readingsError = (readingsResult as? DataResult.Error)?.message,
+                    )
                 }
             }
         }
