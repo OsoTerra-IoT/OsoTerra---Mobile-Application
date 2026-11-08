@@ -1,8 +1,12 @@
 package com.osoterra.mobile.data.demo
 
 import com.osoterra.mobile.data.remote.salinityLevel
+import com.osoterra.mobile.domain.model.ActionSource
 import com.osoterra.mobile.domain.model.Alert
 import com.osoterra.mobile.domain.model.AlertSeverity
+import com.osoterra.mobile.domain.model.ContingencyState
+import com.osoterra.mobile.domain.model.CorrectiveActionRecord
+import com.osoterra.mobile.domain.model.CorrectiveActionType
 import com.osoterra.mobile.domain.model.Crop
 import com.osoterra.mobile.domain.model.Device
 import com.osoterra.mobile.domain.model.DeviceStatus
@@ -10,6 +14,7 @@ import com.osoterra.mobile.domain.model.Farm
 import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.Reading
+import com.osoterra.mobile.domain.model.SalinityContingency
 import com.osoterra.mobile.domain.model.SupervisedPlot
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
@@ -27,6 +32,8 @@ enum class DemoScenario(val number: Int, val role: UserRole) {
     ADVISOR_REQUEST(4, UserRole.PRODUCER),
     ADVISOR_CLIENTS(5, UserRole.ADVISOR),
     ADVISOR_ALERTS(6, UserRole.ADVISOR),
+    CONTINGENCY_FLUSHING(7, UserRole.PRODUCER),
+    CONTINGENCY_EXHAUSTED(8, UserRole.PRODUCER),
     ;
 
     companion object {
@@ -129,6 +136,8 @@ object DemoScenarios {
             )
             DemoScenario.ADVISOR_CLIENTS -> advisorSnapshot(scenario, clock, withAlerts = false)
             DemoScenario.ADVISOR_ALERTS -> advisorSnapshot(scenario, clock, withAlerts = true)
+            DemoScenario.CONTINGENCY_FLUSHING -> contingencyProducer(scenario, clock, exhausted = false)
+            DemoScenario.CONTINGENCY_EXHAUSTED -> contingencyProducer(scenario, clock, exhausted = true)
         }
     }
 
@@ -143,6 +152,73 @@ object DemoScenarios {
         return producerSnapshot(scenario, clock, plots).let { snapshot ->
             snapshot.copy(alerts = listOf(alertFor(plots[2], clock, AlertSeverity.CRITICAL, minutesAgo = 35)))
         }
+    }
+
+    // --- Contingencia de salinidad (lavado automático con bomba) ------------------------------
+
+    /** Duración de cada lavado del dispositivo y espera mínima entre uno y otro. */
+    private const val FLUSH_SECONDS = 60
+
+    /** (minutos atrás, ECe) de las lecturas de las últimas horas; la última coincide con la actual. */
+    private val FLUSHING_TAIL = listOf(
+        250 to 2.28, 220 to 2.32, 185 to 2.27, 155 to 2.29, 120 to 1.98, 90 to 1.76, 65 to 1.62, LAST_READING_MINUTES to 1.58,
+    )
+    private val EXHAUSTED_TAIL = listOf(
+        330 to 2.50, 300 to 2.52, 265 to 2.48, 235 to 2.50, 200 to 2.47, 170 to 2.49,
+        135 to 2.46, 100 to 2.50, 65 to 2.51, LAST_READING_MINUTES to 2.52,
+    )
+
+    /**
+     * Parcela con la contingencia del dispositivo, armada con el modelo de datos de siempre.
+     * - Lavando: 2 de 3 lavados, la ECe baja de Muy alto a En vigilancia y la alerta sigue abierta.
+     * - Agotada: 3 de 3 lavados y la ECe sigue en Muy alto; el dispositivo avisa que una persona debe actuar.
+     */
+    private fun contingencyProducer(scenario: DemoScenario, clock: Clock, exhausted: Boolean): DemoSnapshot {
+        val tail = if (exhausted) EXHAUSTED_TAIL else FLUSHING_TAIL
+        val flushMinutes = if (exhausted) listOf(299, 234, 169) else listOf(219, 154)
+        val final = tail.last().second
+        val spec = PlotSpec("demo-p-algarrobo", "Sector El Algarrobo", palmeras, 3.2, grape, start = 1.55, end = final, seed = 3)
+        val normal = PlotSpec("demo-p-norte", "Sector Norte", palmeras, 2.5, grape, start = 1.05, end = 1.10, seed = 1)
+        val contingency = SalinityContingency(
+            state = if (exhausted) ContingencyState.EXHAUSTED else ContingencyState.ACTIVE,
+            flushesUsed = flushMinutes.size,
+            actions = flushMinutes.mapIndexed { index, minutes ->
+                CorrectiveActionRecord(
+                    id = "demo-flush-${index + 1}",
+                    type = CorrectiveActionType.LEACHING,
+                    performedAt = clock.minutesAgo(minutes),
+                    source = ActionSource.DEVICE,
+                    flushNumber = index + 1,
+                    flushMax = SalinityContingency.DEFAULT_MAX_FLUSHES,
+                    durationSeconds = FLUSH_SECONDS,
+                )
+            },
+        )
+        val peak = tail.maxOf { it.second }
+        val alert = alertFor(
+            spec.copy(end = peak),
+            clock,
+            AlertSeverity.CRITICAL,
+            minutesAgo = if (exhausted) 100 else 220,
+        ).copy(contingency = contingency)
+        // Hasta antes de las últimas horas, las lecturas diarias de siempre; luego las del lavado.
+        val daily = spec.copy(end = 2.20).readings(clock).dropLast(3)
+        val recent = tail.mapIndexed { index, (minutes, ec) ->
+            Reading(
+                id = "${spec.id}-t-$index",
+                timestamp = clock.minutesAgo(minutes),
+                capturedAt = clock.minutesAgo(minutes),
+                ecDsPerM = ec,
+                humidityPct = round1(28.0 + 2.0 * sin(index * 0.8)),
+                temperatureC = round1(25.0 + 1.0 * sin(index * 0.5)),
+            )
+        }
+        val plots = listOf(normal.toPlot(clock), spec.toPlot(clock).copy(contingency = contingency))
+        return producerSnapshot(scenario, clock, listOf(normal, spec)).copy(
+            plots = plots,
+            readings = mapOf(normal.id to normal.readings(clock), spec.id to daily + recent),
+            alerts = listOf(alert),
+        )
     }
 
     private fun producerSnapshot(scenario: DemoScenario, clock: Clock, plots: List<PlotSpec>): DemoSnapshot =

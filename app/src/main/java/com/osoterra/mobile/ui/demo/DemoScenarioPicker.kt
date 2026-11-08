@@ -65,6 +65,8 @@ fun DemoScenario.titleRes(): Int = when (this) {
     DemoScenario.ADVISOR_REQUEST -> R.string.demo_scenario_4_title
     DemoScenario.ADVISOR_CLIENTS -> R.string.demo_scenario_5_title
     DemoScenario.ADVISOR_ALERTS -> R.string.demo_scenario_6_title
+    DemoScenario.CONTINGENCY_FLUSHING -> R.string.demo_scenario_7_title
+    DemoScenario.CONTINGENCY_EXHAUSTED -> R.string.demo_scenario_8_title
 }
 
 @StringRes
@@ -75,6 +77,8 @@ fun DemoScenario.descriptionRes(): Int = when (this) {
     DemoScenario.ADVISOR_REQUEST -> R.string.demo_scenario_4_desc
     DemoScenario.ADVISOR_CLIENTS -> R.string.demo_scenario_5_desc
     DemoScenario.ADVISOR_ALERTS -> R.string.demo_scenario_6_desc
+    DemoScenario.CONTINGENCY_FLUSHING -> R.string.demo_scenario_7_desc
+    DemoScenario.CONTINGENCY_EXHAUSTED -> R.string.demo_scenario_8_desc
 }
 
 @StringRes
@@ -82,7 +86,7 @@ private fun DemoScenario.roleRes(): Int =
     if (role == UserRole.ADVISOR) R.string.demo_role_advisor else R.string.demo_role_producer
 
 /**
- * Fila de los 6 escenarios numerados (48 dp cada uno, 8 dp entre sí). Si la pantalla es
+ * Fila de los escenarios numerados (48 dp cada uno, 8 dp entre sí). Si la pantalla es
  * angosta pasa a dos filas en lugar de achicar los botones. Pulsar el número seleccionado
  * vuelve a cargar el escenario desde cero.
  */

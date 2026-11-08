@@ -16,6 +16,7 @@ import com.osoterra.mobile.domain.model.NewPlot
 import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.Reading
+import com.osoterra.mobile.domain.model.SalinityContingency
 import com.osoterra.mobile.domain.model.RegisterData
 import com.osoterra.mobile.domain.model.Subscription
 import com.osoterra.mobile.domain.model.SupervisedPlot
@@ -44,8 +45,12 @@ private suspend fun pause() = delay(250.milliseconds)
 
 // Las fechas se formatean al leerlas, con el idioma elegido en la app (no el del teléfono).
 private fun DemoStore.date(iso: String?) = displayDateTime(iso, locale())
-private fun Plot.forDisplay(store: DemoStore) = copy(lastReadingAt = store.date(lastReadingAt))
-private fun Alert.forDisplay(store: DemoStore) = copy(createdAt = store.date(createdAt) ?: createdAt)
+private fun SalinityContingency.forDisplay(store: DemoStore) =
+    copy(actions = actions.map { it.copy(performedAt = store.date(it.performedAt) ?: it.performedAt) })
+private fun Plot.forDisplay(store: DemoStore) =
+    copy(lastReadingAt = store.date(lastReadingAt), contingency = contingency?.forDisplay(store))
+private fun Alert.forDisplay(store: DemoStore) =
+    copy(createdAt = store.date(createdAt) ?: createdAt, contingency = contingency?.forDisplay(store))
 private fun Device.forDisplay(store: DemoStore) = copy(lastSeen = store.date(lastSeen))
 private fun Reading.forDisplay(store: DemoStore) = copy(timestamp = store.date(capturedAt) ?: timestamp)
 
