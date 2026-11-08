@@ -26,11 +26,12 @@ Todos están declarados en `data/remote/api/OsoTerraApi.kt`. Los usan los reposi
 | IAM | `POST /auth/signin`, `POST /auth/signup`, `POST /auth/password-reset-requests` | Login, registro (productor `FARMER` o asesor `ADVISOR`), recuperar contraseña |
 | IAM | `GET /users/me/linked-accounts` | Productores de un asesor (vínculo aceptado) |
 | IAM | `GET /advisory-links/mine`, `POST /advisory-links/{id}/acceptance`, `POST /advisory-links/{id}/revocation` | El productor ve, acepta o rechaza solicitudes de asesoría |
-| Subscription and Billing | `GET /subscriptions/mine`, `GET /subscription-plans` | Pantalla de suscripción (solo consulta) |
+| Subscription and Billing | `GET /subscription-plans`, `GET /subscriptions/mine` | Planes (precio, ciclo, límite de parcelas) y plan actual con `quotaConsumed` real |
+| Subscription and Billing | `POST /subscriptions`, `POST /subscriptions/{id}/cancellation` | Contratar o cambiar de plan y cancelar. El cobro (webhook de Stripe) no lo usa la app |
 | Farm Management | `GET /crops`, `GET /farms/mine`, `GET /farms?ownerId=`, `POST /farms` | Catálogo de cultivos y fincas |
 | Farm Management | `GET /plots?farmId=`, `GET /plots/{id}`, `POST /plots`, `POST /plots/{id}/crop`, `POST /plots/{id}/deactivation` | Parcelas |
 | Farm Management | `GET /devices?plotId=`, `POST /devices`, `POST /devices/{id}/attachment` | Dispositivos |
-| Soil Monitoring | `GET /soil-readings?plotId=` | Estado actual, histórico y valor del sensor al calibrar |
+| Soil Monitoring | `GET /soil-readings?plotId=` | Estado actual, histórico y lectura sugerida del sensor al calibrar |
 | Soil Monitoring | `GET /calibration-records?deviceId=`, `POST /calibration-records` | Calibración con muestra de laboratorio |
 | Salinity Alerting | `GET /salinity-alerts?plotId=`, `POST /salinity-alerts/{id}/acknowledgement`, `POST /salinity-alerts/{id}/corrective-actions` | Centro de alertas, reconocimiento y acciones correctivas |
 | Salinity Alerting | `GET /notification-preferences/mine`, `PUT /notification-preferences/mine` | Preferencias de notificación |
@@ -49,8 +50,22 @@ registrar acciones (`ui/common/Role.kt`).
 
 `POST /calibration-records` recibe el valor de laboratorio, la fecha de muestreo, el **nombre del
 laboratorio** (lo escribe la persona; por defecto «Laboratorio de referencia») y
-`deviceReadingAtSampling`. Ese último valor la app lo toma de la **última lectura cruda** de la
-parcela del dispositivo (`rawConductivityDsM`), no de lo que marcaba el sensor en la fecha de muestreo.
+`deviceReadingAtSampling`. `GET /soil-readings` solo filtra por `plotId`, no por fecha, así que la app
+descarga las lecturas de la parcela y **sugiere la lectura cruda (`rawConductivityDsM`) más cercana a la
+fecha del muestreo** (contra el mediodía de ese día; la última si la fecha no es válida). La persona puede
+cambiar ese valor en el campo «Lectura del sensor», que es obligatorio.
+
+## Suscripción
+
+- `GET /subscriptions/mine` devuelve todas las suscripciones del usuario con `quotaConsumed` (parcelas
+  activas) igual en todas. El plan actual es la `ACTIVE` de mayor `quotaTotal`, que es el límite que aplica
+  el Backend; la `PENDING_PAYMENT` más reciente se muestra como «pendiente de pago».
+- `POST /subscriptions {subscriptionPlanId}` crea la suscripción: un plan gratuito queda `ACTIVE` y uno de
+  pago `PENDING_PAYMENT` hasta el pago. No cierra la anterior, así que al activar un plan gratuito la app
+  cancela la activa previa con `POST /subscriptions/{id}/cancellation`.
+- **No se implementa el cobro con Stripe**: la app no inicia ni confirma pagos.
+- `POST /plots` responde **409** si el productor ya tiene tantas parcelas activas como el límite de su plan;
+  la app muestra un mensaje propio (es/en) en vez del texto del Backend.
 
 ## Reglas que la app replica
 
@@ -62,6 +77,6 @@ parcela del dispositivo (`rawConductivityDsM`), no de lo que marcaba el sensor e
 ## Pendiente
 
 - Guardar departamento y provincia del usuario (hoy solo la Web App los envía).
-- Suscripción: la app solo consulta el plan; no hay compra ni cambio de plan.
+- Cobro de los planes de pago con Stripe: la app solo registra la solicitud y queda pendiente de pago.
 - Notificaciones push con FCM (US31): no implementadas.
 - Llamadas en cascada: el tablero hace una consulta de lecturas y dispositivos por parcela (N+1).

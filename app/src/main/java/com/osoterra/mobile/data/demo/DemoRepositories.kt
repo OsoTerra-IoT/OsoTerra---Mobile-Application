@@ -1,6 +1,7 @@
 package com.osoterra.mobile.data.demo
 
 import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.data.remote.closestByCapturedAt
 import com.osoterra.mobile.data.remote.displayDateTime
 import com.osoterra.mobile.data.remote.salinityLevel
 import com.osoterra.mobile.data.repository.SessionStore
@@ -19,6 +20,7 @@ import com.osoterra.mobile.domain.model.Reading
 import com.osoterra.mobile.domain.model.SalinityContingency
 import com.osoterra.mobile.domain.model.RegisterData
 import com.osoterra.mobile.domain.model.Subscription
+import com.osoterra.mobile.domain.model.SubscriptionOverview
 import com.osoterra.mobile.domain.model.SupervisedPlot
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
@@ -142,6 +144,10 @@ class DemoPlotRepository(private val store: DemoStore) : PlotRepository {
         if (plot.name.isBlank()) return DataResult.Error("El nombre de la parcela es obligatorio")
         if (plot.areaHectares <= 0.0) return DataResult.Error("La superficie debe ser mayor a cero")
         val snapshot = store.snapshot ?: return DataResult.Error("Elige un escenario de prueba")
+        val limit = store.subscriptions.plotLimit()
+        if (limit != null && snapshot.plots.size >= limit) {
+            return DataResult.Error("El plan permite $limit parcelas activas", httpCode = 409)
+        }
         val created = Plot(
             id = "demo-p-${UUID.randomUUID()}",
             name = plot.name.trim(),
@@ -267,23 +273,30 @@ class DemoDeviceRepository(private val store: DemoStore) : DeviceRepository {
         return DataResult.Success(calibrations[deviceId]?.toList().orEmpty())
     }
 
+    /** En el modo de prueba, la lectura del escenario más cercana a la fecha del muestreo. */
+    override suspend fun getSensorReading(deviceId: String, samplingDate: String): DataResult<Double?> {
+        pause()
+        val snapshot = store.snapshot ?: return DataResult.Success(null)
+        val plotId = snapshot.devices.firstOrNull { it.id == deviceId }?.plotId
+        val readings = snapshot.readings[plotId].orEmpty()
+        return DataResult.Success(closestByCapturedAt(readings, samplingDate) { it.capturedAt.orEmpty() }?.ecDsPerM)
+    }
+
     override suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        sensorReadingDsPerM: Double,
         laboratoryName: String,
         date: String,
     ): DataResult<Calibration> {
         pause()
         if (referenceValueDsPerM <= 0.0) return DataResult.Error("El valor de referencia debe ser mayor a cero")
-        val sensorEc = store.snapshot?.let { s ->
-            val plotId = s.devices.firstOrNull { it.id == deviceId }?.plotId
-            s.plots.firstOrNull { it.id == plotId }?.lastEcDsPerM
-        } ?: FIRST_READING_DS_PER_M
+        if (sensorReadingDsPerM <= 0.0) return DataResult.Error("La lectura del sensor debe ser mayor a cero")
         val calibration = Calibration(
             id = "demo-cal-${UUID.randomUUID()}",
             date = date,
             referenceValueDsPerM = referenceValueDsPerM,
-            factor = (referenceValueDsPerM / sensorEc * 100).toInt() / 100.0,
+            factor = (referenceValueDsPerM / sensorReadingDsPerM * 100).toInt() / 100.0,
         )
         calibrations.getOrPut(deviceId) { mutableListOf() }.add(0, calibration)
         return DataResult.Success(calibration)
@@ -344,17 +357,20 @@ class DemoNotificationPreferencesRepository(private val store: DemoStore) : Noti
     }
 }
 
+/** Suscripción del escenario de prueba; el cobro no existe, así que un plan de pago queda pendiente. */
 class DemoSubscriptionRepository(private val store: DemoStore) : SubscriptionRepository {
-    override suspend fun getSubscription(): DataResult<Subscription> {
+    override suspend fun getOverview(): DataResult<SubscriptionOverview> {
         pause()
-        return DataResult.Success(
-            Subscription(
-                planName = "Plan Gratuito",
-                isFree = true,
-                renewsAt = null,
-                plotsUsed = store.snapshot?.plots?.size ?: 0,
-                plotsAllowed = 5,
-            ),
-        )
+        return store.subscriptions.getOverview()
+    }
+
+    override suspend fun subscribe(planId: String): DataResult<Subscription> {
+        pause()
+        return store.subscriptions.subscribe(planId)
+    }
+
+    override suspend fun cancel(subscriptionId: String): DataResult<Subscription> {
+        pause()
+        return store.subscriptions.cancel(subscriptionId)
     }
 }

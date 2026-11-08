@@ -84,6 +84,7 @@
     <string name="plot_crop_none">Sin cultivo</string>
     <string name="plot_save">Guardar parcela</string>
     <string name="plot_area_error">La superficie debe ser mayor a cero</string>
+    <string name="plot_limit_reached">No puedes crear más parcelas: alcanzaste el límite de tu plan. Cambia de plan en «Mi suscripción» o da de baja una parcela.</string>
     <string name="plot_select_farm">Selecciona una finca</string>
     <string name="plot_need_farm">Primero registra una finca</string>
     <string name="plot_deactivate">Dar de baja la parcela</string>
@@ -129,6 +130,9 @@
     <string name="device_laboratory">Laboratorio</string>
     <string name="device_default_laboratory">Laboratorio de referencia</string>
     <string name="device_sample_date">Fecha del muestreo (AAAA-MM-DD)</string>
+    <string name="device_sensor_reading">Lectura del sensor (dS/m)</string>
+    <string name="device_sensor_reading_hint">Lectura del sensor más cercana a la fecha del muestreo. Puedes cambiarla.</string>
+    <string name="device_sensor_reading_none">Sin lecturas para esa fecha: escribe lo que marcaba el sensor.</string>
     <string name="device_last_calibration">Última calibración: %1$s · factor %2$s</string>
 
     <!-- Preferencias de notificación -->
@@ -147,6 +151,34 @@
     <string name="subscription_renews">Se renueva el %1$s</string>
     <string name="subscription_plots_used">%1$d de %2$d parcelas usadas</string>
     <string name="subscription_limit_reached">Alcanzaste el límite de parcelas de tu plan.</string>
+    <string name="subscription_load_error">No se pudo cargar tu suscripción.</string>
+    <string name="subscription_current_heading">Plan actual</string>
+    <string name="subscription_none_title">Sin plan activo</string>
+    <string name="subscription_none_hint">No tienes un plan activo. Elige uno de los planes disponibles.</string>
+    <string name="subscription_plans_heading">Planes disponibles</string>
+    <string name="subscription_price_free">Gratis</string>
+    <string name="subscription_price_monthly">%1$s al mes</string>
+    <string name="subscription_price_annual">%1$s al año</string>
+    <string name="subscription_plan_max_plots">Hasta %1$d parcelas</string>
+    <string name="subscription_plan_current">Tu plan actual</string>
+    <string name="subscription_action_subscribe">Contratar</string>
+    <string name="subscription_action_change">Cambiar a este plan</string>
+    <string name="subscription_cancel">Cancelar suscripción</string>
+    <string name="subscription_cancel_request">Cancelar solicitud</string>
+    <string name="subscription_pending_title">Pendiente de pago: %1$s</string>
+    <string name="subscription_pending_hint">El cobro todavía no está disponible en la app, así que este plan no se activa. Tu plan actual sigue vigente.</string>
+    <string name="subscription_payment_note">El cobro con tarjeta aún no está disponible en la app: los planes de pago quedan pendientes de pago.</string>
+    <string name="subscription_confirm_subscribe_title">¿Contratar el plan %1$s?</string>
+    <string name="subscription_confirm_change_title">¿Cambiar al plan %1$s?</string>
+    <string name="subscription_confirm_free_message">El plan gratuito se activa al instante.</string>
+    <string name="subscription_confirm_free_replace_message">El plan gratuito se activa al instante y reemplaza a tu plan actual. Si tienes más parcelas que su límite, no podrás crear nuevas.</string>
+    <string name="subscription_confirm_paid_message">Se registrará la solicitud, pero el cobro aún no está disponible en la app: el plan queda pendiente de pago y tu plan actual sigue vigente.</string>
+    <string name="subscription_confirm_cancel_title">¿Cancelar %1$s?</string>
+    <string name="subscription_confirm_cancel_message">Esta acción no se puede deshacer.</string>
+    <string name="subscription_notice_activated">Listo: ahora estás en el plan %1$s.</string>
+    <string name="subscription_notice_pending">Solicitud registrada: el plan %1$s queda pendiente de pago.</string>
+    <string name="subscription_notice_cancelled">Se canceló %1$s.</string>
+    <string name="subscription_notice_close">Cerrar</string>
 
     <!-- Panel de asesor (multiparcela) -->
     <string name="profile_advisor">Panel de asesor</string>

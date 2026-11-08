@@ -14,6 +14,7 @@ import com.osoterra.mobile.data.remote.dto.RecordCorrectiveActionDto
 import com.osoterra.mobile.data.remote.dto.RegisterCalibrationDto
 import com.osoterra.mobile.data.remote.dto.RegisterFarmDto
 import com.osoterra.mobile.data.remote.dto.RegisterPlotDto
+import com.osoterra.mobile.data.remote.dto.RequestSubscriptionDto
 import com.osoterra.mobile.data.remote.dto.SignInDto
 import com.osoterra.mobile.data.remote.dto.SignUpDto
 import com.osoterra.mobile.data.remote.dto.SoilReadingDto
@@ -31,6 +32,7 @@ import com.osoterra.mobile.domain.model.Plot
 import com.osoterra.mobile.domain.model.Reading
 import com.osoterra.mobile.domain.model.RegisterData
 import com.osoterra.mobile.domain.model.Subscription
+import com.osoterra.mobile.domain.model.SubscriptionOverview
 import com.osoterra.mobile.domain.model.SupervisedPlot
 import com.osoterra.mobile.domain.model.User
 import com.osoterra.mobile.domain.model.UserRole
@@ -318,30 +320,38 @@ class DeviceRepositoryRemote(
             .map { Calibration(it.id.toString(), it.samplingDate, it.labConductivityDsM, it.resultingFactor) }
     }
 
+    private suspend fun plotIdOf(deviceId: String): Long =
+        reader.plots().map { it.second.id }
+            .firstOrNull { id -> api.devicesOf(id).any { it.id == deviceId.toLong() } }
+            ?: error("Dispositivo sin parcela")
+
+    /** La lectura cruda de la parcela del dispositivo más cercana a la fecha del muestreo. */
+    override suspend fun getSensorReading(deviceId: String, samplingDate: String): DataResult<Double?> = apiCall {
+        closestByCapturedAt(reader.readings(plotIdOf(deviceId)), samplingDate) { it.capturedAt }
+            ?.rawConductivityDsM
+    }
+
     /**
-     * El Backend compara la muestra de laboratorio con lo que medía el sensor al tomarla;
-     * se usa la última lectura cruda de la parcela del dispositivo.
+     * El Backend compara la muestra de laboratorio con lo que medía el sensor al tomarla
+     * ([sensorReadingDsPerM], sugerida por [getSensorReading] y editable por la persona).
      */
     override suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        sensorReadingDsPerM: Double,
         laboratoryName: String,
         date: String,
     ): DataResult<Calibration> {
         if (referenceValueDsPerM <= 0.0) return DataResult.Error("El valor de referencia debe ser mayor a cero")
+        if (sensorReadingDsPerM <= 0.0) return DataResult.Error("La lectura del sensor debe ser mayor a cero")
         return apiCall {
-            val plotId = reader.plots().map { it.second.id }
-                .firstOrNull { id -> api.devicesOf(id).any { it.id == deviceId.toLong() } }
-                ?: error("Dispositivo sin parcela")
-            val sensorValue = reader.readings(plotId).lastOrNull()?.rawConductivityDsM
-                ?: error("Aún no hay lecturas del sensor para comparar")
             val record = api.registerCalibration(
                 RegisterCalibrationDto(
                     deviceId = deviceId.toLong(),
                     labConductivityDsM = referenceValueDsPerM,
                     samplingDate = isoDateOrToday(date),
                     laboratoryName = laboratoryNameOrDefault(laboratoryName),
-                    deviceReadingAtSampling = sensorValue,
+                    deviceReadingAtSampling = sensorReadingDsPerM,
                 ),
             )
             Calibration(record.id.toString(), record.samplingDate, record.labConductivityDsM, record.resultingFactor)
@@ -365,29 +375,25 @@ class DeviceRepositoryRemote(
 
 class SubscriptionRepositoryRemote(private val api: OsoTerraApi) : SubscriptionRepository {
 
-    override suspend fun getSubscription(): DataResult<Subscription> {
-        val result = apiCall {
-            val subscription = api.mySubscriptions().firstOrNull { it.status == "ACTIVE" }
-                ?: api.mySubscriptions().firstOrNull()
-            subscription to api.subscriptionPlans()
+    override suspend fun getOverview(): DataResult<SubscriptionOverview> =
+        apiCall { buildSubscriptionOverview(api.mySubscriptions(), api.subscriptionPlans()) }
+
+    /**
+     * Pide la suscripción y, si el plan nuevo quedó activo (gratuito), cancela la anterior para que
+     * el límite de parcelas sea el del plan nuevo. Un plan de pago queda pendiente de pago: el
+     * cobro no se implementa, y el plan vigente se conserva.
+     */
+    override suspend fun subscribe(planId: String): DataResult<Subscription> = apiCall {
+        val previous = api.mySubscriptions().filter { it.status == "ACTIVE" }
+        val created = api.requestSubscription(RequestSubscriptionDto(planId.toLong()))
+        if (created.status == "ACTIVE") {
+            previous.filter { it.id != created.id }.forEach { api.cancelSubscription(it.id) }
         }
-        return when (result) {
-            is DataResult.Error -> result
-            is DataResult.Success -> {
-                val (subscription, plans) = result.data
-                if (subscription == null) return DataResult.Error("Aún no tienes una suscripción activa")
-                val plan = plans.firstOrNull { it.id == subscription.subscriptionPlanId }
-                DataResult.Success(
-                    Subscription(
-                        planName = plan?.name ?: "Plan",
-                        isFree = plan?.free ?: false,
-                        renewsAt = subscription.periodEndDate,
-                        plotsUsed = subscription.quotaConsumed,
-                        plotsAllowed = subscription.quotaTotal,
-                    ),
-                )
-            }
-        }
+        created.toSubscription(api.subscriptionPlans())
+    }
+
+    override suspend fun cancel(subscriptionId: String): DataResult<Subscription> = apiCall {
+        api.cancelSubscription(subscriptionId.toLong()).toSubscription(api.subscriptionPlans())
     }
 }
 

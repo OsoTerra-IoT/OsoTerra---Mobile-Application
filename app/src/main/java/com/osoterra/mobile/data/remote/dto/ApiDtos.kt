@@ -68,6 +68,9 @@ data class SubscriptionDto(
     val periodEndDate: String? = null,
 )
 
+@Serializable
+data class RequestSubscriptionDto(val subscriptionPlanId: Long)
+
 // Farm Management
 @Serializable
 data class CropDto(

@@ -15,6 +15,7 @@ import com.osoterra.mobile.data.remote.dto.PasswordResetRequestDto
 import com.osoterra.mobile.data.remote.dto.PlotDto
 import com.osoterra.mobile.data.remote.dto.PlotIdDto
 import com.osoterra.mobile.data.remote.dto.RegisterCalibrationDto
+import com.osoterra.mobile.data.remote.dto.RequestSubscriptionDto
 import com.osoterra.mobile.data.remote.dto.RegisterFarmDto
 import com.osoterra.mobile.data.remote.dto.RegisterPlotDto
 import com.osoterra.mobile.data.remote.dto.SalinityAlertDto
@@ -66,6 +67,12 @@ interface OsoTerraApi {
 
     @GET("subscriptions/mine")
     suspend fun mySubscriptions(): List<SubscriptionDto>
+
+    @POST("subscriptions")
+    suspend fun requestSubscription(@Body body: RequestSubscriptionDto): SubscriptionDto
+
+    @POST("subscriptions/{id}/cancellation")
+    suspend fun cancelSubscription(@Path("id") id: Long): SubscriptionDto
 
     // Farm Management
     @GET("crops")

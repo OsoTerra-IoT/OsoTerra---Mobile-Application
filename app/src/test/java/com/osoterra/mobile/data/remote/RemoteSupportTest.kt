@@ -5,6 +5,7 @@ import com.osoterra.mobile.domain.model.AlertSeverity
 import com.osoterra.mobile.domain.model.NotificationPreferences
 import com.osoterra.mobile.domain.model.SalinityLevel
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.Locale
 
@@ -66,5 +67,26 @@ class RemoteSupportTest {
         assertEquals("Lab Agrario UNALM", laboratoryNameOrDefault("  Lab Agrario UNALM "))
         assertEquals("Laboratorio de referencia", laboratoryNameOrDefault("   "))
         assertEquals("Laboratorio de referencia", laboratoryNameOrDefault(""))
+    }
+
+    private val captured = listOf(
+        "2026-09-28T08:00:00",
+        "2026-09-30T06:00:00",
+        "2026-09-30T20:00:00",
+        "2026-10-05T08:00:00",
+    )
+
+    @Test
+    fun `picks the reading closest to the sampling date`() {
+        // Contra el mediodía del 30: las 06:00 (6 h) ganan a las 20:00 (8 h).
+        assertEquals("2026-09-30T06:00:00", closestByCapturedAt(captured, "2026-09-30") { it })
+        assertEquals("2026-10-05T08:00:00", closestByCapturedAt(captured, "2026-10-04") { it })
+        assertEquals("2026-09-28T08:00:00", closestByCapturedAt(captured, "2026-09-01") { it })
+    }
+
+    @Test
+    fun `falls back to the latest reading when the date is not valid`() {
+        assertEquals("2026-10-05T08:00:00", closestByCapturedAt(captured, "ayer") { it })
+        assertNull(closestByCapturedAt(emptyList<String>(), "2026-09-30") { it })
     }
 }

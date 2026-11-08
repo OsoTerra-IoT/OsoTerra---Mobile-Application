@@ -30,7 +30,7 @@ private val errorJson = Json { ignoreUnknownKeys = true }
 suspend fun <T> apiCall(block: suspend () -> T): DataResult<T> = try {
     DataResult.Success(block())
 } catch (error: HttpException) {
-    DataResult.Error(httpMessage(error), error)
+    DataResult.Error(httpMessage(error), error, error.code())
 } catch (error: IOException) {
     DataResult.Error("No se pudo conectar con el servidor. Revisa tu conexión.", error)
 } catch (error: IllegalStateException) {
@@ -154,6 +154,25 @@ private fun shortDate(month: Int, day: Int, locale: Locale): String {
 /** La fecha si ya es YYYY-MM-DD; si no, la de hoy. */
 fun isoDateOrToday(date: String): String =
     date.takeIf { ISO_DATE.matches(it) } ?: SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+private fun isoToMillis(text: String): Long? = runCatching {
+    SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
+        .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+        .parse(text.take(16))?.time
+}.getOrNull()
+
+/**
+ * Elemento cuya fecha de captura está más cerca del muestreo. El muestreo trae solo la fecha
+ * (YYYY-MM-DD), así que se compara contra el mediodía de ese día. Si la fecha no es válida,
+ * devuelve el más reciente. El API de lecturas no filtra por fecha: se elige sobre la lista completa.
+ */
+fun <T> closestByCapturedAt(items: List<T>, samplingDate: String, capturedAt: (T) -> String): T? {
+    val dated = items.mapNotNull { item -> isoToMillis(capturedAt(item))?.let { item to it } }
+    if (dated.isEmpty()) return null
+    val target = (if (ISO_DATE.matches(samplingDate)) isoToMillis("${samplingDate}T12:00") else null)
+        ?: return dated.maxByOrNull { it.second }?.first
+    return dated.minByOrNull { kotlin.math.abs(it.second - target) }?.first
+}
 
 /** Nombre que el Backend guarda cuando la persona no escribe el laboratorio. */
 const val DEFAULT_LABORATORY = "Laboratorio de referencia"

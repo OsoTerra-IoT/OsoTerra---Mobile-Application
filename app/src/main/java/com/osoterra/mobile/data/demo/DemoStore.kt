@@ -1,6 +1,8 @@
 package com.osoterra.mobile.data.demo
 
 import android.content.Context
+import com.osoterra.mobile.data.repository.InMemorySubscriptions
+import com.osoterra.mobile.data.repository.SubscriptionPlans
 import java.util.Calendar
 import java.util.Locale
 
@@ -21,8 +23,25 @@ class DemoStore(
     val snapshot: DemoSnapshot?
         get() = current
 
+    /**
+     * Suscripción del escenario: arranca en el plan más pequeño que cabe las parcelas del escenario
+     * y se reinicia al cargar otro. Los cambios de plan solo viven aquí.
+     */
+    @Volatile
+    var subscriptions: InMemorySubscriptions = newSubscriptions()
+        private set
+
+    private fun newSubscriptions() = InMemorySubscriptions(
+        initialPlanId = SubscriptionPlans.smallestFitting(current?.plots?.size ?: 0).id,
+        plotsUsed = { current?.plots?.size ?: 0 },
+    )
+
     @Synchronized
-    fun load(scenario: DemoScenario): DemoSnapshot = DemoScenarios.build(scenario, now()).also { current = it }
+    fun load(scenario: DemoScenario): DemoSnapshot =
+        DemoScenarios.build(scenario, now()).also {
+            current = it
+            subscriptions = newSubscriptions()
+        }
 
     /** El escenario activo; si aún no hay uno, carga [fallback]. */
     @Synchronized
@@ -37,6 +56,7 @@ class DemoStore(
 
     fun clear() {
         current = null
+        subscriptions = newSubscriptions()
     }
 
     fun nowIso(): String = DemoScenarios.Clock(now()).nowIso()

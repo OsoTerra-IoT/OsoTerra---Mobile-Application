@@ -80,6 +80,7 @@
     <string name="plot_crop_none">No crop</string>
     <string name="plot_save">Save plot</string>
     <string name="plot_area_error">The area must be greater than zero</string>
+    <string name="plot_limit_reached">You cannot create more plots: you reached your plan limit. Change your plan in “My subscription” or deactivate a plot.</string>
     <string name="plot_select_farm">Select a farm</string>
     <string name="plot_need_farm">Register a farm first</string>
     <string name="plot_deactivate">Deactivate plot</string>
@@ -124,6 +125,9 @@
     <string name="device_laboratory">Laboratory</string>
     <string name="device_default_laboratory">Reference laboratory</string>
     <string name="device_sample_date">Sampling date (YYYY-MM-DD)</string>
+    <string name="device_sensor_reading">Sensor reading (dS/m)</string>
+    <string name="device_sensor_reading_hint">Sensor reading closest to the sampling date. You can change it.</string>
+    <string name="device_sensor_reading_none">No readings for that date: type what the sensor showed.</string>
     <string name="device_last_calibration">Last calibration: %1$s · factor %2$s</string>
 
     <!-- Notification preferences -->
@@ -142,6 +146,34 @@
     <string name="subscription_renews">Renews on %1$s</string>
     <string name="subscription_plots_used">%1$d of %2$d plots used</string>
     <string name="subscription_limit_reached">You reached the plot limit of your plan.</string>
+    <string name="subscription_load_error">Your subscription could not be loaded.</string>
+    <string name="subscription_current_heading">Current plan</string>
+    <string name="subscription_none_title">No active plan</string>
+    <string name="subscription_none_hint">You have no active plan. Choose one of the available plans.</string>
+    <string name="subscription_plans_heading">Available plans</string>
+    <string name="subscription_price_free">Free</string>
+    <string name="subscription_price_monthly">%1$s per month</string>
+    <string name="subscription_price_annual">%1$s per year</string>
+    <string name="subscription_plan_max_plots">Up to %1$d plots</string>
+    <string name="subscription_plan_current">Your current plan</string>
+    <string name="subscription_action_subscribe">Subscribe</string>
+    <string name="subscription_action_change">Switch to this plan</string>
+    <string name="subscription_cancel">Cancel subscription</string>
+    <string name="subscription_cancel_request">Cancel request</string>
+    <string name="subscription_pending_title">Pending payment: %1$s</string>
+    <string name="subscription_pending_hint">Payment is not available in the app yet, so this plan is not active. Your current plan stays in force.</string>
+    <string name="subscription_payment_note">Card payment is not available in the app yet: paid plans stay pending payment.</string>
+    <string name="subscription_confirm_subscribe_title">Subscribe to the %1$s plan?</string>
+    <string name="subscription_confirm_change_title">Switch to the %1$s plan?</string>
+    <string name="subscription_confirm_free_message">The free plan is activated right away.</string>
+    <string name="subscription_confirm_free_replace_message">The free plan is activated right away and replaces your current plan. If you have more plots than its limit, you will not be able to create new ones.</string>
+    <string name="subscription_confirm_paid_message">The request will be registered, but payment is not available in the app yet: the plan stays pending payment and your current plan stays in force.</string>
+    <string name="subscription_confirm_cancel_title">Cancel %1$s?</string>
+    <string name="subscription_confirm_cancel_message">This action cannot be undone.</string>
+    <string name="subscription_notice_activated">Done: you are now on the %1$s plan.</string>
+    <string name="subscription_notice_pending">Request registered: the %1$s plan is pending payment.</string>
+    <string name="subscription_notice_cancelled">%1$s was cancelled.</string>
+    <string name="subscription_notice_close">Close</string>
 
     <!-- Advisor panel -->
     <string name="profile_advisor">Advisor panel</string>
