@@ -129,6 +129,9 @@
     <string name="device_laboratory">Laboratorio</string>
     <string name="device_default_laboratory">Laboratorio de referencia</string>
     <string name="device_sample_date">Fecha del muestreo (AAAA-MM-DD)</string>
+    <string name="device_sensor_reading">Lectura del sensor (dS/m)</string>
+    <string name="device_sensor_reading_hint">Lectura del sensor más cercana a la fecha del muestreo. Puedes cambiarla.</string>
+    <string name="device_sensor_reading_none">Sin lecturas para esa fecha: escribe lo que marcaba el sensor.</string>
     <string name="device_last_calibration">Última calibración: %1$s · factor %2$s</string>
 
     <!-- Preferencias de notificación -->

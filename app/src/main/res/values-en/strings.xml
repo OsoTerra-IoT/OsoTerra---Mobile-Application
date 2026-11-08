@@ -124,6 +124,9 @@
     <string name="device_laboratory">Laboratory</string>
     <string name="device_default_laboratory">Reference laboratory</string>
     <string name="device_sample_date">Sampling date (YYYY-MM-DD)</string>
+    <string name="device_sensor_reading">Sensor reading (dS/m)</string>
+    <string name="device_sensor_reading_hint">Sensor reading closest to the sampling date. You can change it.</string>
+    <string name="device_sensor_reading_none">No readings for that date: type what the sensor showed.</string>
     <string name="device_last_calibration">Last calibration: %1$s · factor %2$s</string>
 
     <!-- Notification preferences -->

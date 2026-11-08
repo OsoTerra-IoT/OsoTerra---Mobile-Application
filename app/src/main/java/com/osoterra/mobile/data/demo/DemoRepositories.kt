@@ -1,6 +1,7 @@
 package com.osoterra.mobile.data.demo
 
 import com.osoterra.mobile.core.util.DataResult
+import com.osoterra.mobile.data.remote.closestByCapturedAt
 import com.osoterra.mobile.data.remote.displayDateTime
 import com.osoterra.mobile.data.remote.salinityLevel
 import com.osoterra.mobile.data.repository.SessionStore
@@ -267,23 +268,30 @@ class DemoDeviceRepository(private val store: DemoStore) : DeviceRepository {
         return DataResult.Success(calibrations[deviceId]?.toList().orEmpty())
     }
 
+    /** En el modo de prueba, la lectura del escenario más cercana a la fecha del muestreo. */
+    override suspend fun getSensorReading(deviceId: String, samplingDate: String): DataResult<Double?> {
+        pause()
+        val snapshot = store.snapshot ?: return DataResult.Success(null)
+        val plotId = snapshot.devices.firstOrNull { it.id == deviceId }?.plotId
+        val readings = snapshot.readings[plotId].orEmpty()
+        return DataResult.Success(closestByCapturedAt(readings, samplingDate) { it.capturedAt.orEmpty() }?.ecDsPerM)
+    }
+
     override suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        sensorReadingDsPerM: Double,
         laboratoryName: String,
         date: String,
     ): DataResult<Calibration> {
         pause()
         if (referenceValueDsPerM <= 0.0) return DataResult.Error("El valor de referencia debe ser mayor a cero")
-        val sensorEc = store.snapshot?.let { s ->
-            val plotId = s.devices.firstOrNull { it.id == deviceId }?.plotId
-            s.plots.firstOrNull { it.id == plotId }?.lastEcDsPerM
-        } ?: FIRST_READING_DS_PER_M
+        if (sensorReadingDsPerM <= 0.0) return DataResult.Error("La lectura del sensor debe ser mayor a cero")
         val calibration = Calibration(
             id = "demo-cal-${UUID.randomUUID()}",
             date = date,
             referenceValueDsPerM = referenceValueDsPerM,
-            factor = (referenceValueDsPerM / sensorEc * 100).toInt() / 100.0,
+            factor = (referenceValueDsPerM / sensorReadingDsPerM * 100).toInt() / 100.0,
         )
         calibrations.getOrPut(deviceId) { mutableListOf() }.add(0, calibration)
         return DataResult.Success(calibration)

@@ -318,30 +318,38 @@ class DeviceRepositoryRemote(
             .map { Calibration(it.id.toString(), it.samplingDate, it.labConductivityDsM, it.resultingFactor) }
     }
 
+    private suspend fun plotIdOf(deviceId: String): Long =
+        reader.plots().map { it.second.id }
+            .firstOrNull { id -> api.devicesOf(id).any { it.id == deviceId.toLong() } }
+            ?: error("Dispositivo sin parcela")
+
+    /** La lectura cruda de la parcela del dispositivo más cercana a la fecha del muestreo. */
+    override suspend fun getSensorReading(deviceId: String, samplingDate: String): DataResult<Double?> = apiCall {
+        closestByCapturedAt(reader.readings(plotIdOf(deviceId)), samplingDate) { it.capturedAt }
+            ?.rawConductivityDsM
+    }
+
     /**
-     * El Backend compara la muestra de laboratorio con lo que medía el sensor al tomarla;
-     * se usa la última lectura cruda de la parcela del dispositivo.
+     * El Backend compara la muestra de laboratorio con lo que medía el sensor al tomarla
+     * ([sensorReadingDsPerM], sugerida por [getSensorReading] y editable por la persona).
      */
     override suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        sensorReadingDsPerM: Double,
         laboratoryName: String,
         date: String,
     ): DataResult<Calibration> {
         if (referenceValueDsPerM <= 0.0) return DataResult.Error("El valor de referencia debe ser mayor a cero")
+        if (sensorReadingDsPerM <= 0.0) return DataResult.Error("La lectura del sensor debe ser mayor a cero")
         return apiCall {
-            val plotId = reader.plots().map { it.second.id }
-                .firstOrNull { id -> api.devicesOf(id).any { it.id == deviceId.toLong() } }
-                ?: error("Dispositivo sin parcela")
-            val sensorValue = reader.readings(plotId).lastOrNull()?.rawConductivityDsM
-                ?: error("Aún no hay lecturas del sensor para comparar")
             val record = api.registerCalibration(
                 RegisterCalibrationDto(
                     deviceId = deviceId.toLong(),
                     labConductivityDsM = referenceValueDsPerM,
                     samplingDate = isoDateOrToday(date),
                     laboratoryName = laboratoryNameOrDefault(laboratoryName),
-                    deviceReadingAtSampling = sensorValue,
+                    deviceReadingAtSampling = sensorReadingDsPerM,
                 ),
             )
             Calibration(record.id.toString(), record.samplingDate, record.labConductivityDsM, record.resultingFactor)

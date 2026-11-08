@@ -50,6 +50,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -174,9 +175,17 @@ fun DevicesScreen(
             device = device,
             isSaving = state.isSaving,
             errorMessage = state.errorMessage,
-            onDismiss = { calibrateDevice = null },
-            onConfirm = { value, laboratory, date ->
-                viewModel.registerCalibration(device.id, value, laboratory, date) { calibrateDevice = null }
+            suggestedSensorReading = state.suggestedSensorReading,
+            onDateChange = { date -> viewModel.loadSensorReading(device.id, date) },
+            onDismiss = {
+                viewModel.clearSensorReading()
+                calibrateDevice = null
+            },
+            onConfirm = { value, sensor, laboratory, date ->
+                viewModel.registerCalibration(device.id, value, sensor, laboratory, date) {
+                    viewModel.clearSensorReading()
+                    calibrateDevice = null
+                }
             },
         )
     }
@@ -345,19 +354,34 @@ private fun RegisterDeviceDialog(
     )
 }
 
+private val DATE_PATTERN = Regex("\\d{4}-\\d{2}-\\d{2}")
+
 @Composable
 private fun CalibrationDialog(
     device: Device,
     isSaving: Boolean,
     errorMessage: String?,
+    suggestedSensorReading: Double?,
+    onDateChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (referenceValue: Double, laboratoryName: String, date: String) -> Unit,
+    onConfirm: (referenceValue: Double, sensorReading: Double, laboratoryName: String, date: String) -> Unit,
 ) {
     val defaultLaboratory = stringResource(R.string.device_default_laboratory)
     var value by remember { mutableStateOf("") }
     var laboratory by remember { mutableStateOf(defaultLaboratory) }
     // Hoy en YYYY-MM-DD sin java.time, que exige API 26 y la app admite desde API 24.
     var date by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) }
+    // La lectura del sensor se sugiere según la fecha del muestreo y la persona puede cambiarla.
+    var sensor by remember { mutableStateOf("") }
+    var sensorEdited by remember { mutableStateOf(false) }
+    LaunchedEffect(date) {
+        if (DATE_PATTERN.matches(date)) onDateChange(date)
+    }
+    LaunchedEffect(suggestedSensorReading) {
+        if (!sensorEdited && suggestedSensorReading != null) {
+            sensor = String.format(Locale.US, "%.2f", suggestedSensorReading)
+        }
+    }
 
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
@@ -390,6 +414,26 @@ private fun CalibrationDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = sensor,
+                    onValueChange = {
+                        sensor = it
+                        sensorEdited = true
+                    },
+                    label = { Text(stringResource(R.string.device_sensor_reading)) },
+                    supportingText = {
+                        Text(
+                            stringResource(
+                                if (suggestedSensorReading != null) R.string.device_sensor_reading_hint
+                                else R.string.device_sensor_reading_none,
+                            ),
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 if (errorMessage != null) {
                     Spacer(Modifier.height(8.dp))
                     Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
@@ -400,9 +444,10 @@ private fun CalibrationDialog(
             TextButton(
                 onClick = {
                     val v = value.replace(",", ".").toDoubleOrNull()
-                    if (v != null) onConfirm(v, laboratory, date)
+                    val sensorValue = sensor.replace(",", ".").toDoubleOrNull()
+                    if (v != null && sensorValue != null) onConfirm(v, sensorValue, laboratory, date)
                 },
-                enabled = !isSaving && value.isNotBlank(),
+                enabled = !isSaving && value.isNotBlank() && sensor.isNotBlank(),
             ) { Text(stringResource(R.string.common_confirm)) }
         },
         dismissButton = {

@@ -23,6 +23,8 @@ data class DevicesUiState(
     val plots: List<Plot> = emptyList(),
     val calibrationsByDevice: Map<String, List<Calibration>> = emptyMap(),
     val isSaving: Boolean = false,
+    /** Lectura cruda del sensor más cercana al muestreo, sugerida al calibrar; null si no hay. */
+    val suggestedSensorReading: Double? = null,
     val errorMessage: String? = null,
     /** La lista de dispositivos no se pudo cargar (red, 403…): se distingue de «sin dispositivos». */
     val loadError: String? = null,
@@ -76,9 +78,21 @@ class DevicesViewModel(
         }
     }
 
+    /** Pide la lectura del sensor más cercana a la fecha del muestreo para sugerirla en el formulario. */
+    fun loadSensorReading(deviceId: String, samplingDate: String) {
+        _uiState.update { it.copy(suggestedSensorReading = null) }
+        viewModelScope.launch {
+            val reading = (deviceRepository.getSensorReading(deviceId, samplingDate) as? DataResult.Success)?.data
+            _uiState.update { it.copy(suggestedSensorReading = reading) }
+        }
+    }
+
+    fun clearSensorReading() = _uiState.update { it.copy(suggestedSensorReading = null) }
+
     fun registerCalibration(
         deviceId: String,
         referenceValue: Double,
+        sensorReading: Double,
         laboratoryName: String,
         date: String,
         onDone: () -> Unit,
@@ -86,7 +100,7 @@ class DevicesViewModel(
         if (_uiState.value.isSaving) return
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            when (val result = deviceRepository.registerCalibration(deviceId, referenceValue, laboratoryName, date)) {
+            when (val result = deviceRepository.registerCalibration(deviceId, referenceValue, sensorReading, laboratoryName, date)) {
                 is DataResult.Success -> {
                     _uiState.update { it.copy(isSaving = false) }
                     load()

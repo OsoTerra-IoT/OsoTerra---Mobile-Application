@@ -57,9 +57,15 @@ class DeviceRepositoryMock(
         return DataResult.Success(calibrations[deviceId]?.toList() ?: emptyList())
     }
 
+    override suspend fun getSensorReading(deviceId: String, samplingDate: String): DataResult<Double?> {
+        delay(200.milliseconds)
+        return DataResult.Success(SENSOR_BASE)
+    }
+
     override suspend fun registerCalibration(
         deviceId: String,
         referenceValueDsPerM: Double,
+        sensorReadingDsPerM: Double,
         laboratoryName: String,
         date: String,
     ): DataResult<Calibration> {
@@ -67,9 +73,8 @@ class DeviceRepositoryMock(
         if (referenceValueDsPerM <= 0.0) {
             return DataResult.Error("El valor de referencia debe ser mayor a cero")
         }
-        // Factor de corrección simulado: referencia de laboratorio sobre una lectura base del sensor.
-        val sensorBase = 3.5
-        val factor = referenceValueDsPerM / sensorBase
+        // Factor de corrección: referencia de laboratorio sobre la lectura del sensor.
+        val factor = referenceValueDsPerM / sensorReadingDsPerM
         val calibration = Calibration(
             id = "cal-${UUID.randomUUID()}",
             date = date,
@@ -78,5 +83,9 @@ class DeviceRepositoryMock(
         )
         calibrations.getOrPut(deviceId) { mutableListOf() }.add(0, calibration)
         return DataResult.Success(calibration)
+    }
+
+    private companion object {
+        const val SENSOR_BASE = 3.5
     }
 }

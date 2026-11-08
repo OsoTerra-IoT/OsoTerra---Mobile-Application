@@ -50,9 +50,12 @@ class ErrorStatesTest {
         override suspend fun registerDevice(activationCode: String, plotId: String): DataResult<Device> = error("no")
         override suspend fun getCalibrations(deviceId: String): DataResult<List<Calibration>> =
             DataResult.Success(emptyList())
+        override suspend fun getSensorReading(deviceId: String, samplingDate: String): DataResult<Double?> =
+            DataResult.Success(null)
         override suspend fun registerCalibration(
             deviceId: String,
             referenceValueDsPerM: Double,
+            sensorReadingDsPerM: Double,
             laboratoryName: String,
             date: String,
         ): DataResult<Calibration> = error("no")
