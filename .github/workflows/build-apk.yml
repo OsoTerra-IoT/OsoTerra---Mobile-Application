@@ -26,17 +26,26 @@ jobs:
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk osoterra-mobile-0.1.0-debug.apk
 
+      - name: Build release APK (R8, signed with the debug key for App Distribution)
+        run: |
+          sed -i 's/isMinifyEnabled = false/isMinifyEnabled = true\n            isShrinkResources = true\n            signingConfig = signingConfigs.getByName("debug")/' app/build.gradle.kts
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk osoterra-mobile-0.1.0.apk
+          ls -la *.apk
+
       - uses: actions/upload-artifact@v4
         with:
-          name: osoterra-mobile-debug-apk
-          path: osoterra-mobile-0.1.0-debug.apk
+          name: osoterra-mobile-apk
+          path: |
+            osoterra-mobile-0.1.0-debug.apk
+            osoterra-mobile-0.1.0.apk
 
       - name: Publish pre-release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete v0.2.0-sprint2 --yes --cleanup-tag || true
-          gh release create v0.2.0-sprint2 osoterra-mobile-0.1.0-debug.apk \
+          gh release create v0.2.0-sprint2 osoterra-mobile-0.1.0.apk osoterra-mobile-0.1.0-debug.apk \
             --target "${{ github.sha }}" --prerelease \
-            --title "OsoTerra Mobile v0.2.0 (Sprint 2) - debug APK" \
+            --title "OsoTerra Mobile v0.2.0 (Sprint 2) - APK" \
             --notes "APK debug de la Mobile App (com.osoterra.mobile) para Firebase App Distribution. Consume el RESTful API desplegado en Railway."
