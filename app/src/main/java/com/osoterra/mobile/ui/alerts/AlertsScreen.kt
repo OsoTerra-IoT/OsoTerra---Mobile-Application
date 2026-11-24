@@ -286,6 +286,7 @@ private fun AlertCard(alert: Alert, canWrite: Boolean, onAcknowledge: () -> Unit
             modifier = Modifier.padding(top = 12.dp),
         )
         AlertReading(alert)
+        AlertGuidance(alert, modifier = Modifier.padding(top = 8.dp))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
             Icon(Icons.Outlined.Schedule, contentDescription = null, tint = SageInk, modifier = Modifier.size(16.dp))
             Text(

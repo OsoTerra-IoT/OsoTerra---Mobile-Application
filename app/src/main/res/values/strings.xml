@@ -80,6 +80,11 @@
     <string name="plot_area">Superficie (hectáreas)</string>
     <string name="plot_latitude">Latitud (opcional)</string>
     <string name="plot_longitude">Longitud (opcional)</string>
+    <string name="plot_use_my_location">Usar mi ubicación</string>
+    <string name="plot_locating">Buscando tu ubicación…</string>
+    <string name="plot_location_found">Listo: usamos la ubicación de tu teléfono. Puedes corregirla.</string>
+    <string name="plot_location_unavailable">No pudimos obtener tu ubicación. Activa la ubicación del teléfono o escribe las coordenadas.</string>
+    <string name="plot_location_denied">Sin permiso de ubicación. Puedes escribir las coordenadas.</string>
     <string name="plot_crop">Cultivo (opcional)</string>
     <string name="plot_crop_none">Sin cultivo</string>
     <string name="plot_save">Guardar parcela</string>
@@ -247,6 +252,13 @@ Protege tu cosecha.</string>
     <string name="alerts_acknowledged">Atendida</string>
     <string name="alerts_record_action">Registrar acción</string>
     <string name="alerts_message">ECe de %1$s, %2$d %% del umbral del cultivo (%3$s).</string>
+    <string name="alerts_what_to_do">Qué hacer:</string>
+    <string name="alerts_recommendation_watch">riega con agua de buena calidad, evita fertilizar de más y vuelve a revisar la parcela en 2 o 3 días.</string>
+    <string name="alerts_recommendation_high">aplica un riego de lavado para bajar las sales a la raíz, revisa que el agua drene y avisa a tu asesor.</string>
+    <string name="alerts_recommendation_critical">haz hoy un riego de lavado abundante, revisa el drenaje y llama a tu asesor; no fertilices hasta que baje la salinidad.</string>
+    <string name="alerts_share">Compartir alerta</string>
+    <string name="alerts_share_reading">: %1$s, umbral %2$s</string>
+    <string name="alerts_share_text">OsoSense · Alerta de salinidad %1$s en %2$s (%3$s)%4$s. Qué hacer: %5$s</string>
     <string name="alerts_acknowledged_notice">Alerta marcada como atendida.</string>
     <string name="action_sheet_title">¿Qué hiciste en %1$s?</string>
     <string name="action_sheet_hint">Al registrar la acción, la alerta queda resuelta.</string>
