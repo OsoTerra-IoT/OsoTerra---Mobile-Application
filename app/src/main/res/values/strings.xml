@@ -80,6 +80,11 @@
     <string name="plot_area">Superficie (hectáreas)</string>
     <string name="plot_latitude">Latitud (opcional)</string>
     <string name="plot_longitude">Longitud (opcional)</string>
+    <string name="plot_use_my_location">Usar mi ubicación</string>
+    <string name="plot_locating">Buscando tu ubicación…</string>
+    <string name="plot_location_found">Listo: usamos la ubicación de tu teléfono. Puedes corregirla.</string>
+    <string name="plot_location_unavailable">No pudimos obtener tu ubicación. Activa la ubicación del teléfono o escribe las coordenadas.</string>
+    <string name="plot_location_denied">Sin permiso de ubicación. Puedes escribir las coordenadas.</string>
     <string name="plot_crop">Cultivo (opcional)</string>
     <string name="plot_crop_none">Sin cultivo</string>
     <string name="plot_save">Guardar parcela</string>

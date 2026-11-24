@@ -117,6 +117,11 @@ fun CreatePlotScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(Modifier.height(12.dp))
+                    UseMyLocationButton(onLocation = { lat, lng ->
+                        viewModel.onLatChange(lat)
+                        viewModel.onLngChange(lng)
+                    })
+                    Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth()) {
                         OutlinedTextField(
                             value = state.latitude,

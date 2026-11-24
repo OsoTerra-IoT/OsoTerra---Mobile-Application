@@ -76,6 +76,11 @@
     <string name="plot_area">Area (hectares)</string>
     <string name="plot_latitude">Latitude (optional)</string>
     <string name="plot_longitude">Longitude (optional)</string>
+    <string name="plot_use_my_location">Use my location</string>
+    <string name="plot_locating">Finding your location…</string>
+    <string name="plot_location_found">Done: we used the location of your phone. You can correct it.</string>
+    <string name="plot_location_unavailable">We could not get your location. Turn on location or type the coordinates.</string>
+    <string name="plot_location_denied">No location permission. You can type the coordinates.</string>
     <string name="plot_crop">Crop (optional)</string>
     <string name="plot_crop_none">No crop</string>
     <string name="plot_save">Save plot</string>
