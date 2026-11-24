@@ -236,6 +236,13 @@ Protect your harvest.</string>
     <string name="alerts_acknowledged">Handled</string>
     <string name="alerts_record_action">Record action</string>
     <string name="alerts_message">ECe %1$s, %2$d %% of the crop threshold (%3$s).</string>
+    <string name="alerts_what_to_do">What to do:</string>
+    <string name="alerts_recommendation_watch">irrigate with good-quality water, avoid over-fertilizing and check the plot again in 2 or 3 days.</string>
+    <string name="alerts_recommendation_high">apply a leaching irrigation to push salts below the roots, check that the water drains and tell your advisor.</string>
+    <string name="alerts_recommendation_critical">apply a generous leaching irrigation today, check the drainage and call your advisor; do not fertilize until salinity drops.</string>
+    <string name="alerts_share">Share alert</string>
+    <string name="alerts_share_reading">: %1$s, threshold %2$s</string>
+    <string name="alerts_share_text">OsoSense · %1$s salinity alert in %2$s (%3$s)%4$s. What to do: %5$s</string>
     <string name="alerts_acknowledged_notice">Alert marked as handled.</string>
     <string name="action_sheet_title">What did you do in %1$s?</string>
     <string name="action_sheet_hint">Recording the action resolves the alert.</string>
