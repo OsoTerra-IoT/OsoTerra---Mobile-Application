@@ -101,7 +101,8 @@ class SubscriptionTest {
         val repo = InMemorySubscriptions(initialPlanId = SubscriptionPlans.basic.id, plotsUsed = { 0 })
         val current = (repo.getOverview() as DataResult.Success).data.current!!
         assertTrue(repo.cancel(current.id) is DataResult.Success)
-        assertNull(repo.plotLimit())
+        // Sin plan activo rige el límite del plan gratuito, como en el Backend.
+        assertEquals(SubscriptionPlans.free.maxPlots, repo.plotLimit())
         val again = repo.cancel(current.id) as DataResult.Error
         assertEquals(409, again.httpCode)
     }

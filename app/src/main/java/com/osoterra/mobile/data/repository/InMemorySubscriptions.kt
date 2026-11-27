@@ -23,7 +23,7 @@ object SubscriptionPlans {
  * Suscripciones en memoria con las mismas reglas del Backend, para los modos mock y de prueba:
  * un plan gratuito se activa al instante y reemplaza al anterior; uno de pago queda pendiente de
  * pago (no hay cobro) y el plan vigente se conserva; el límite de parcelas es el mayor de los
- * planes activos y, sin plan activo, no hay límite.
+ * planes activos y, sin plan activo, el del plan gratuito.
  */
 class InMemorySubscriptions(
     private val plans: List<SubscriptionPlan> = SubscriptionPlans.catalog,
@@ -51,9 +51,13 @@ class InMemorySubscriptions(
         plotsAllowed = plan.maxPlots,
     )
 
-    /** Límite de parcelas activas que aplica hoy; null si no hay un plan activo. */
+    /**
+     * Límite de parcelas activas que aplica hoy. Sin plan activo rige el del plan gratuito, como en
+     * el Backend (si no, cancelar el plan gratuito quitaría todo límite); null si no hay plan gratuito.
+     */
     @Synchronized
     fun plotLimit(): Int? = stored.filter { it.status == SubscriptionStatus.ACTIVE }.maxOfOrNull { it.plan.maxPlots }
+        ?: plans.filter { it.isFree }.minOfOrNull { it.maxPlots }
 
     override suspend fun getOverview(): DataResult<SubscriptionOverview> = synchronized(this) {
         DataResult.Success(
