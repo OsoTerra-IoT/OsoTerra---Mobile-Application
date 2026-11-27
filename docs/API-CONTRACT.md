@@ -6,8 +6,8 @@ completa y navegable está en Swagger UI del Backend: `http://localhost:8080/swa
 
 ## Convenciones
 
-- **Base URL:** `/api/v1/` (`BuildConfig.API_BASE_URL`). Por defecto el Backend desplegado en Railway,
-  `https://osoterra-backend-production.up.railway.app/api/v1/`; para un Backend local desde el emulador:
+- **Base URL:** `/api/v1/` (`BuildConfig.API_BASE_URL`). Por defecto el Backend desplegado en Render,
+  `https://ososense-backend.onrender.com/api/v1/`; para un Backend local desde el emulador:
   `./gradlew assembleDebug -Posoterra.apiUrl=http://10.0.2.2:8080/api/v1/` (solo el build `debug` admite HTTP).
 - **Autenticación:** `Authorization: Bearer <token>` que devuelve `POST /auth/signin`. Son públicos
   `/auth/**`, `GET /crops` y `GET /subscription-plans`.

@@ -68,7 +68,7 @@ ejecutar en un emulador o dispositivo con Android 7.0 (API 24) o superior.
 
 ### URL base del API
 
-Por defecto, el Backend desplegado en Railway: `https://osoterra-backend-production.up.railway.app/api/v1/`
+Por defecto, el Backend desplegado en Render: `https://ososense-backend.onrender.com/api/v1/`
 (`BuildConfig.API_BASE_URL`, propiedad `osoterra.apiUrl`). El tráfico HTTP solo se permite en el build `debug`.
 Los endpoints que usa la app están en [`docs/API-CONTRACT.md`](docs/API-CONTRACT.md).
 

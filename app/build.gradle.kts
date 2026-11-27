@@ -28,10 +28,10 @@ android {
         val demoMode = (project.findProperty("osoterra.demo") as String?) ?: "false"
         buildConfigField("boolean", "DEMO_MODE", demoMode)
 
-        // Base URL del RESTful API. Por defecto, el Backend desplegado en Railway.
+        // Base URL del RESTful API. Por defecto, el Backend desplegado en Render.
         // Backend local desde el emulador: -Posoterra.apiUrl=http://10.0.2.2:8080/api/v1/
         val apiUrl = (project.findProperty("osoterra.apiUrl") as String?)
-            ?: "https://osoterra-backend-production.up.railway.app/api/v1/"
+            ?: "https://ososense-backend.onrender.com/api/v1/"
         buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
     }
 
